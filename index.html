@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Zach — Webs y pedidos online para restaurantes</title>
+<meta name="description" content="Webs modernas, pedidos online sin comisiones de apps y pantallas de cocina en tiempo real para restaurantes. Hecho por Zach. Demo de tu restaurante en 24 horas.">
+<meta property="og:title" content="Zach — Sistemas para restaurantes">
+<meta property="og:description" content="Web + pedidos online + pantalla de cocina. Demo de TU restaurante en 24 horas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F1E6;
+    --paper-2: #EFE7D6;
+    --ink: #201D18;
+    --ink-soft: #5C554A;
+    --paprika: #C8401A;
+    --azulejo: #23557F;
+    --line: rgba(32, 29, 24, 0.16);
+    --tick-bg: #1B211F;
+    --tick-ink: #F2EFE6;
+    --lemon: #E3A72F;
+    --display: "Bricolage Grotesque", sans-serif;
+    --body: "Newsreader", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body); font-size: 1.12rem; line-height: 1.65;
+    background: var(--paper); color: var(--ink);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  /* paper grain */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.5 0 0 0 0 0.42 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1100px; margin-inline: auto; padding-inline: clamp(1.2rem, 4vw, 3rem); }
+
+  h1, h2, h3 { font-family: var(--display); line-height: 0.98; letter-spacing: -0.02em; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--azulejo); display: flex; align-items: center; gap: 0.7em;
+  }
+  .eyebrow::before { content: ""; width: 2em; height: 1px; background: currentColor; opacity: 0.6; }
+
+  /* reveals — visible by default; .js gates the hidden state, timer rescues */
+  .js .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+  .js .rv.in { opacity: 1; transform: none; }
+  .js .rv.d1 { transition-delay: 0.08s; } .js .rv.d2 { transition-delay: 0.16s; } .js .rv.d3 { transition-delay: 0.24s; }
+  @media (prefers-reduced-motion: reduce) { .js .rv { opacity: 1; transform: none; transition: none; } }
+
+  /* ------------------------------------------------------------- header */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 1.1rem clamp(1.2rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(8px); z-index: 50;
+  }
+  .brand { font-family: var(--display); font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; text-decoration: none; }
+  .brand .dot { color: var(--paprika); }
+  .head-right { display: flex; align-items: center; gap: 0.9rem; }
+  .lang { font-family: var(--mono); font-size: 0.75rem; display: flex; border: 1px solid var(--line); border-radius: 100px; overflow: hidden; }
+  .lang button { font: inherit; border: none; background: none; padding: 0.45em 0.9em; cursor: pointer; color: var(--ink-soft); }
+  .lang button.on { background: var(--ink); color: var(--paper); }
+  .btn {
+    font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--paprika); color: #fff; text-decoration: none;
+    padding: 0.85em 1.4em; border-radius: 3px; white-space: nowrap;
+    transition: transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--paprika) 80%, transparent);
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.ghost { background: none; color: var(--ink); border: 1px solid var(--ink); box-shadow: none; }
+
+  /* --------------------------------------------------------------- hero */
+  .hero { padding: clamp(3.5rem, 9vw, 7rem) 0 clamp(3rem, 7vw, 5rem); position: relative; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+  .hero h1 {
+    font-size: clamp(2.6rem, 7.2vw, 5.6rem); font-weight: 800;
+    margin: 1.1rem 0 1.4rem;
+  }
+  .hero h1 .es-hl { color: var(--paprika); }
+  .hero-sub { font-size: clamp(1.15rem, 2vw, 1.45rem); max-width: 34ch; color: var(--ink-soft); }
+  .hero-sub strong { color: var(--ink); font-weight: 600; }
+  .hero-cta { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 2rem; align-items: center; }
+  .hero-note { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft); letter-spacing: 0.06em; }
+
+  /* the live order ticket */
+  .ticket-stage { position: relative; display: grid; place-items: center; }
+  .ticket {
+    width: min(320px, 84vw); background: var(--tick-bg); color: var(--tick-ink);
+    border-radius: 10px; box-shadow: 0 40px 80px -32px rgba(32,29,24,0.55);
+    transform: rotate(2.4deg); overflow: hidden;
+    font-family: var(--mono);
+  }
+  .ticket-band { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #242C29; }
+  .ticket-band b { font-size: 1.5rem; letter-spacing: 0.02em; }
+  .ticket-band .t-time { font-variant-numeric: tabular-nums; color: var(--lemon); }
+  .ticket-body { padding: 14px 16px 6px; }
+  .ticket-row { display: flex; gap: 12px; padding: 5px 0; font-size: 0.95rem; opacity: 0; animation: tkrow 0.5s ease-out forwards; }
+  .ticket-row b { color: var(--lemon); }
+  .ticket-row:nth-child(1) { animation-delay: 0.7s; } .ticket-row:nth-child(2) { animation-delay: 1s; } .ticket-row:nth-child(3) { animation-delay: 1.3s; }
+  @keyframes tkrow { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+  .ticket-note { margin: 8px 0; padding: 7px 10px; border-left: 3px solid var(--lemon); background: rgba(227,167,47,0.14); color: #F2E3BC; font-size: 0.85rem; opacity: 0; animation: tkrow 0.5s ease-out 1.6s forwards; }
+  .ticket-foot { padding: 4px 16px 14px; font-size: 0.72rem; opacity: 0.65; }
+  .ticket-go { margin: 0 12px 14px; padding: 13px; text-align: center; background: var(--paprika); color: #fff; border-radius: 6px; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase; }
+  .ticket-ring { position: absolute; top: -8px; right: 6%; width: 16px; height: 16px; border-radius: 50%; background: var(--paprika); animation: ring 2.2s ease-out infinite; }
+  @keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(200,64,26,0.55); } 70% { box-shadow: 0 0 0 18px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .ticket-caption { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin-top: 1.6rem; text-align: center; }
+
+  /* the giant background word */
+  .hero-bg {
+    position: absolute; right: -4vw; bottom: -2vw; z-index: -1;
+    font-family: var(--display); font-weight: 800; font-size: clamp(8rem, 24vw, 20rem);
+    color: transparent; -webkit-text-stroke: 1px rgba(35,85,127,0.16);
+    pointer-events: none; user-select: none; line-height: 0.8;
+  }
+
+  /* ------------------------------------------------------------ proof bar */
+  .proof { border-block: 1px solid var(--line); background: var(--paper-2); }
+  .proof .wrap { display: flex; gap: clamp(1.5rem, 5vw, 4rem); flex-wrap: wrap; justify-content: space-between; padding-block: 1.4rem; }
+  .proof span { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+  .proof b { color: var(--paprika); }
+
+  /* --------------------------------------------------------------- case */
+  section { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
+  h2 { font-size: clamp(2rem, 4.6vw, 3.4rem); font-weight: 750; margin: 0.9rem 0 1.2rem; max-width: 18ch; }
+  .case-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+  .case-copy p { margin-bottom: 1rem; max-width: 52ch; }
+  .case-list { list-style: none; padding: 0; margin: 1.4rem 0 2rem; display: grid; gap: 0.55rem; }
+  .case-list li { display: flex; gap: 0.7rem; align-items: baseline; }
+  .case-list li::before { content: "—"; color: var(--paprika); font-weight: 700; }
+  .shots { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .shot { border-radius: 8px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 30px 60px -30px rgba(32,29,24,0.4); background: #fff; }
+  .shot.wide { grid-column: 1 / -1; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .shot.tall img { max-height: 460px; }
+  .shot-tag {
+    position: absolute; top: -14px; left: -10px; z-index: 2; transform: rotate(-4deg);
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+    background: var(--azulejo); color: #fff; padding: 0.5em 0.9em; border-radius: 3px;
+  }
+
+  /* ------------------------------------------------------ carta (services) */
+  .carta { background: var(--ink); color: var(--paper); position: relative; }
+  .carta .eyebrow { color: var(--lemon); }
+  .carta h2 { color: var(--paper); }
+  .menu-list { max-width: 720px; margin-top: 2.4rem; display: grid; gap: 1.5rem; }
+  .menu-item-row { display: grid; gap: 0.25rem; }
+  .menu-line { display: flex; align-items: baseline; gap: 0.8rem; }
+  .menu-line h3 { font-size: clamp(1.15rem, 2.4vw, 1.5rem); font-weight: 650; white-space: nowrap; }
+  .menu-line .dots { flex: 1; border-bottom: 2px dotted rgba(246,241,230,0.35); transform: translateY(-4px); }
+  .menu-line .price { font-family: var(--mono); font-size: 1rem; color: var(--lemon); white-space: nowrap; }
+  .menu-item-row p { color: rgba(246,241,230,0.72); font-size: 1rem; max-width: 56ch; }
+  .carta-note { margin-top: 2.4rem; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; color: rgba(246,241,230,0.55); }
+
+  /* --------------------------------------------------------------- pasos */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1.4rem, 4vw, 3rem); margin-top: 2.6rem; }
+  .step { border-top: 2px solid var(--ink); padding-top: 1.1rem; position: relative; }
+  .step .n { font-family: var(--display); font-weight: 800; font-size: 2.6rem; color: var(--paprika); line-height: 1; }
+  .step h3 { font-size: 1.25rem; margin: 0.5rem 0 0.4rem; }
+  .step p { color: var(--ink-soft); font-size: 1rem; }
+  .step .stamp {
+    position: absolute; top: -1.1rem; right: 0; transform: rotate(6deg);
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+    border: 1.5px solid var(--paprika); color: var(--paprika); padding: 0.35em 0.6em; border-radius: 3px;
+  }
+
+  /* --------------------------------------------------------------- honest */
+  .honest { background: var(--paper-2); border-block: 1px solid var(--line); }
+  .qa { display: grid; gap: 1.6rem; margin-top: 2.4rem; max-width: 760px; }
+  .qa h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .qa h3::before { content: "¿"; color: var(--paprika); }
+  html[lang="en"] .qa h3::before { content: ""; }
+  .qa p { color: var(--ink-soft); max-width: 62ch; }
+
+  /* --------------------------------------------------------------- cierre */
+  .cierre { text-align: center; padding-bottom: clamp(4rem, 9vw, 7rem); }
+  .cierre h2 { margin-inline: auto; max-width: 22ch; }
+  .cierre .big-btn {
+    display: inline-flex; align-items: center; gap: 0.7em;
+    font-family: var(--mono); font-size: 1rem; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--paprika); color: #fff; text-decoration: none;
+    padding: 1.2em 2.2em; border-radius: 4px; margin-top: 2rem;
+    box-shadow: 0 20px 44px -16px color-mix(in srgb, var(--paprika) 85%, transparent);
+    transition: transform 0.25s;
+  }
+  .cierre .big-btn:hover { transform: translateY(-3px); }
+  .cierre .alt { margin-top: 1.2rem; font-family: var(--mono); font-size: 0.8rem; color: var(--ink-soft); }
+  .cierre .alt a { color: var(--azulejo); }
+
+  footer { border-top: 1px solid var(--line); padding: 1.6rem 0 2.2rem; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .ticket-stage { order: 2; margin-top: 1rem; }
+    .case-grid { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; gap: 2rem; }
+    .proof .wrap { gap: 0.8rem 1.6rem; }
+  }
+</style>
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="#top">zach<span class="dot">.</span></a>
+  <div class="head-right">
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button id="langEs" class="on">ES</button><button id="langEn">EN</button>
+    </div>
+    <a class="btn" href="https://wa.me/447543455889?text=Hola%20Zach%2C%20vi%20tu%20web%20—%20quiero%20una%20demo%20de%20mi%20restaurante" target="_blank" rel="noopener">WhatsApp</a>
+  </div>
+</header>
+
+<main id="top">
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow rv" data-es="Sistemas para restaurantes · Málaga &amp; Florida" data-en="Restaurant systems · Málaga &amp; Florida">Sistemas para restaurantes · Málaga &amp; Florida</p>
+      <h1 class="rv d1" data-es='Webs y <span class="es-hl">pedidos online</span> para restaurantes.' data-en='Websites and <span class="es-hl">online ordering</span> for restaurants.'>Webs y <span class="es-hl">pedidos online</span> para restaurantes.</h1>
+      <p class="hero-sub rv d2" data-es="Hecho por Zach, <strong>13 años</strong>. Sí, en serio — y abajo está la prueba funcionando en un restaurante real." data-en="Built by Zach, <strong>13 years old</strong>. Yes, really — and the proof is running in a real restaurant below.">Hecho por Zach, <strong>13 años</strong>. Sí, en serio — y abajo está la prueba funcionando en un restaurante real.</p>
+      <div class="hero-cta rv d3">
+        <a class="btn" href="https://wa.me/447543455889?text=Hola%20Zach%2C%20quiero%20una%20demo%20de%20mi%20restaurante" target="_blank" rel="noopener" data-es="Quiero mi demo gratis" data-en="I want my free demo">Quiero mi demo gratis</a>
+        <a class="btn ghost" href="#caso" data-es="Ver la prueba" data-en="See the proof">Ver la prueba</a>
+      </div>
+      <p class="hero-note rv d3" style="margin-top:1.2rem" data-es="Demo de TU restaurante en 24 horas · sin compromiso" data-en="A demo of YOUR restaurant in 24 hours · no strings">Demo de TU restaurante en 24 horas · sin compromiso</p>
+    </div>
+    <div class="ticket-stage rv d2">
+      <div>
+        <div class="ticket" aria-hidden="true">
+          <div class="ticket-ring"></div>
+          <div class="ticket-band"><b>LM-A7</b><span class="t-time" id="tickTimer">0:07</span></div>
+          <div class="ticket-body">
+            <div class="ticket-row"><b>2×</b><span data-es="Espetos de sardinas" data-en="Sardine espetos">Espetos de sardinas</span></div>
+            <div class="ticket-row"><b>1×</b><span data-es="Ensalada malagueña" data-en="Málaga salad">Ensalada malagueña</span></div>
+            <div class="ticket-row"><b>2×</b><span data-es="Tinto de verano" data-en="Tinto de verano">Tinto de verano</span></div>
+            <div class="ticket-note" data-es="Sin cebolla, por favor" data-en="No onion, please">Sin cebolla, por favor</div>
+          </div>
+          <div class="ticket-foot" data-es="Mesa 4 · pagado online" data-en="Table 4 · paid online">Mesa 4 · pagado online</div>
+          <div class="ticket-go" data-es="Listo" data-en="Ready">Listo</div>
+        </div>
+        <p class="ticket-caption" data-es="Así suena un pedido en tu cocina" data-en="This is what an order sounds like in your kitchen">Así suena un pedido en tu cocina</p>
+      </div>
+    </div>
+  </div>
+  <div class="hero-bg" aria-hidden="true">zach</div>
+</div>
+
+<div class="proof">
+  <div class="wrap">
+    <span data-es="<b>Restaurante real</b> en Florida, EE.UU." data-en="<b>Real restaurant</b> in Florida, USA"><b>Restaurante real</b> en Florida, EE.UU.</span>
+    <span data-es="Pedidos <b>sin comisiones</b> de apps" data-en="Ordering with <b>zero app commissions</b>">Pedidos <b>sin comisiones</b> de apps</span>
+    <span data-es="Carta en <b>4 idiomas</b>" data-en="Menus in <b>4 languages</b>"><b></b>Carta en <b>4 idiomas</b></span>
+    <span data-es="En Montemar <b>todo el verano</b>" data-en="In Montemar <b>all summer</b>">En Montemar <b>todo el verano</b></span>
+  </div>
+</div>
+
+<section id="caso">
+  <div class="wrap case-grid">
+    <div class="case-copy">
+      <p class="eyebrow rv" data-es="El plato principal · caso real" data-en="The main course · real case">El plato principal · caso real</p>
+      <h2 class="rv d1">Lily's Mediterranean, Florida.</h2>
+      <p class="rv d2" data-es="Un restaurante familiar en la costa de Florida. Le construí el sistema completo — no una plantilla, un sistema:" data-en="A family restaurant on Florida's coast. I built their complete system — not a template, a system:">Un restaurante familiar en la costa de Florida. Le construí el sistema completo — no una plantilla, un sistema:</p>
+      <ul class="case-list rv d2">
+        <li data-es="Web nueva con su carta completa" data-en="New website with their full menu">Web nueva con su carta completa</li>
+        <li data-es="Pedidos online con pago (tarjeta, Apple&nbsp;Pay, Google&nbsp;Pay)" data-en="Online ordering with payment (card, Apple&nbsp;Pay, Google&nbsp;Pay)">Pedidos online con pago (tarjeta, Apple&nbsp;Pay, Google&nbsp;Pay)</li>
+        <li data-es="Pantalla de cocina en tiempo real — suena cuando entra un pedido" data-en="Real-time kitchen display — it rings when an order lands">Pantalla de cocina en tiempo real — suena cuando entra un pedido</li>
+        <li data-es="Chatbot que responde carta, horarios y alérgenos" data-en="Chatbot answering menu, hours and allergens">Chatbot que responde carta, horarios y alérgenos</li>
+        <li data-es="Resumen de ventas por email cada mañana" data-en="Sales digest emailed every morning">Resumen de ventas por email cada mañana</li>
+      </ul>
+      <a class="btn ghost rv d3" href="https://zachachacker.github.io/lilys-mediterranean/" target="_blank" rel="noopener" data-es="Ver la web en vivo ↗" data-en="See the live site ↗">Ver la web en vivo ↗</a>
+    </div>
+    <div class="shots rv d2" style="position:relative">
+      <span class="shot-tag" data-es="Hecho por Zach" data-en="Built by Zach">Hecho por Zach</span>
+      <div class="shot wide"><img src="assets/lilys-home.png" alt="Lily's Mediterranean — home page" loading="lazy"></div>
+      <div class="shot tall"><img src="assets/lilys-menu-mobile.png" alt="Lily's — carta en el móvil" loading="lazy"></div>
+      <div class="shot tall"><img src="assets/lilys-order-mobile.png" alt="Lily's — pedidos online en el móvil" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<section class="carta">
+  <div class="wrap">
+    <p class="eyebrow rv" data-es="La carta · precios claros" data-en="The menu · clear prices">La carta · precios claros</p>
+    <h2 class="rv d1" data-es="Lo que hago, como una carta." data-en="What I do, priced like a menu.">Lo que hago, como una carta.</h2>
+    <div class="menu-list">
+      <div class="menu-item-row rv">
+        <div class="menu-line"><h3 data-es="Web completa" data-en="Complete website">Web completa</h3><span class="dots"></span><span class="price">300€</span></div>
+        <p data-es="Diseño moderno, tu carta completa, fotos, horarios, mapa. En tu dominio, a tu nombre." data-en="Modern design, your full menu, photos, hours, map. On your domain, in your name.">Diseño moderno, tu carta completa, fotos, horarios, mapa. En tu dominio, a tu nombre.</p>
+      </div>
+      <div class="menu-item-row rv">
+        <div class="menu-line"><h3 data-es="Pedidos online directos" data-en="Direct online ordering">Pedidos online directos</h3><span class="dots"></span><span class="price" data-es="incluido" data-en="included">incluido</span></div>
+        <p data-es="Tus clientes piden y pagan en tu web. Sin el 30% de Glovo — solo la comisión de la tarjeta (~1,5%)." data-en="Your customers order and pay on your site. No 30% Glovo cut — just the card fee (~1.5%).">Tus clientes piden y pagan en tu web. Sin el 30% de Glovo — solo la comisión de la tarjeta (~1,5%).</p>
+      </div>
+      <div class="menu-item-row rv">
+        <div class="menu-line"><h3 data-es="Carta en 4 idiomas" data-en="Menu in 4 languages">Carta en 4 idiomas</h3><span class="dots"></span><span class="price" data-es="incluido" data-en="included">incluido</span></div>
+        <p data-es="Español, inglés, alemán, francés. Los turistas piden más cuando entienden la carta." data-en="Spanish, English, German, French. Tourists order more when they understand the menu.">Español, inglés, alemán, francés. Los turistas piden más cuando entienden la carta.</p>
+      </div>
+      <div class="menu-item-row rv">
+        <div class="menu-line"><h3 data-es="Pantalla de cocina" data-en="Kitchen display">Pantalla de cocina</h3><span class="dots"></span><span class="price" data-es="incluido" data-en="included">incluido</span></div>
+        <p data-es="Una tablet en tu cocina que suena con cada pedido. Diseñada como las de Toast y Square." data-en="A tablet in your kitchen that rings with every order. Designed like Toast's and Square's.">Una tablet en tu cocina que suena con cada pedido. Diseñada como las de Toast y Square.</p>
+      </div>
+      <div class="menu-item-row rv">
+        <div class="menu-line"><h3 data-es="Mantenimiento y cambios" data-en="Maintenance &amp; changes">Mantenimiento y cambios</h3><span class="dots"></span><span class="price" data-es="40€/mes" data-en="€40/mo">40€/mes</span></div>
+        <p data-es="Cambios de carta y precios, fotos nuevas, todo el hosting, vigilancia 24/7. Primer mes gratis. Sin permanencia." data-en="Menu and price changes, new photos, all hosting, 24/7 monitoring. First month free. No lock-in.">Cambios de carta y precios, fotos nuevas, todo el hosting, vigilancia 24/7. Primer mes gratis. Sin permanencia.</p>
+      </div>
+    </div>
+    <p class="carta-note" data-es="El postre: la demo de tu restaurante es gratis y la hago esta noche." data-en="Dessert: your restaurant's demo is free, and I'll make it tonight.">El postre: la demo de tu restaurante es gratis y la hago esta noche.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow rv" data-es="Cómo funciona" data-en="How it works">Cómo funciona</p>
+    <h2 class="rv d1" data-es="Tres pasos. Sin líos." data-en="Three steps. No fuss.">Tres pasos. Sin líos.</h2>
+    <div class="steps">
+      <div class="step rv d1">
+        <span class="n">01</span>
+        <h3 data-es="Me escribes" data-en="You message me">Me escribes</h3>
+        <p data-es="Un WhatsApp con el nombre de tu restaurante. Nada más — la carta ya la encuentro yo." data-en="One WhatsApp with your restaurant's name. Nothing else — I'll find your menu myself.">Un WhatsApp con el nombre de tu restaurante. Nada más — la carta ya la encuentro yo.</p>
+      </div>
+      <div class="step rv d2">
+        <span class="n">02</span>
+        <h3 data-es="Ves tu demo" data-en="You see your demo">Ves tu demo</h3>
+        <p data-es="En 24 horas te enseño TU web funcionando, con tu carta y tus colores. Gratis." data-en="Within 24 hours I show you YOUR site working, with your menu and your colors. Free.">En 24 horas te enseño TU web funcionando, con tu carta y tus colores. Gratis.</p>
+        <span class="stamp" data-es="24 horas" data-en="24 hours">24 horas</span>
+      </div>
+      <div class="step rv d3">
+        <span class="n">03</span>
+        <h3 data-es="Lanzamos" data-en="We launch">Lanzamos</h3>
+        <p data-es="Si te gusta, la hacemos oficial: tu dominio, tus pagos, tu web. Todo a tu nombre." data-en="If you like it, we make it official: your domain, your payments, your site. All in your name.">Si te gusta, la hacemos oficial: tu dominio, tus pagos, tu web. Todo a tu nombre.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="honest">
+  <div class="wrap">
+    <p class="eyebrow rv" data-es="Las preguntas que me hacen en la puerta" data-en="The questions I get at the door">Las preguntas que me hacen en la puerta</p>
+    <h2 class="rv d1" data-es="Sí, tengo 13 años." data-en="Yes, I'm 13.">Sí, tengo 13 años.</h2>
+    <div class="qa">
+      <div class="rv">
+        <h3 data-es="Por qué tan barato?" data-en="Why so affordable?">Por qué tan barato?</h3>
+        <p data-es="Porque no soy una agencia con oficina y diez empleados. Soy un chico con herramientas de 2026 que trabaja mejor y más rápido. El resultado lo ves arriba." data-en="Because I'm not an agency with an office and ten staff. I'm a kid with 2026 tools who works better and faster. You can see the result above.">Porque no soy una agencia con oficina y diez empleados. Soy un chico con herramientas de 2026 que trabaja mejor y más rápido. El resultado lo ves arriba.</p>
+      </div>
+      <div class="rv">
+        <h3 data-es="Y si desapareces?" data-en="What if you disappear?">Y si desapareces?</h3>
+        <p data-es="Mi familia vive en Montemar la mitad del año — vuelvo siempre. Y todo queda a tu nombre: el dominio, los pagos, la web. Si un día no estoy, no pierdes nada." data-en="My family lives in Montemar half the year — I always come back. And everything stays in your name: domain, payments, website. If I'm ever gone, you lose nothing.">Mi familia vive en Montemar la mitad del año — vuelvo siempre. Y todo queda a tu nombre: el dominio, los pagos, la web. Si un día no estoy, no pierdes nada.</p>
+      </div>
+      <div class="rv">
+        <h3 data-es="Esto es de verdad?" data-en="Is this real?">Esto es de verdad?</h3>
+        <p data-es="El restaurante de Florida existe, cobra pedidos reales con este sistema, y puedes ver su web ahora mismo. Pídeme la demo y júzgalo tú." data-en="The Florida restaurant is real, takes real paid orders on this system, and you can visit its website right now. Ask me for the demo and judge for yourself.">El restaurante de Florida existe, cobra pedidos reales con este sistema, y puedes ver su web ahora mismo. Pídeme la demo y júzgalo tú.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cierre">
+  <div class="wrap">
+    <p class="eyebrow rv" style="justify-content:center" data-es="La cuenta, por favor" data-en="The bill, please">La cuenta, por favor</p>
+    <h2 class="rv d1" data-es="Tu restaurante merece una web mejor que la de tu competencia." data-en="Your restaurant deserves a better website than your competition's.">Tu restaurante merece una web mejor que la de tu competencia.</h2>
+    <a class="big-btn rv d2" href="https://wa.me/447543455889?text=Hola%20Zach%2C%20quiero%20una%20demo%20de%20mi%20restaurante" target="_blank" rel="noopener">
+      <span data-es="Escríbeme por WhatsApp" data-en="Message me on WhatsApp">Escríbeme por WhatsApp</span> →
+    </a>
+    <p class="alt rv d3">+44 7543 455889 · <a href="mailto:zachary@mr10x.com">zachary@mr10x.com</a></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>zach<span style="color:var(--paprika)">.</span> — Montemar · Torremolinos · Málaga</span>
+    <span data-es="Hecho a mano, como debe ser" data-en="Handmade, as it should be">Hecho a mano, como debe ser</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  /* ---- language toggle: ES default, persisted ---- */
+  const btnEs = document.getElementById("langEs");
+  const btnEn = document.getElementById("langEn");
+  const setLang = (lang) => {
+    document.documentElement.lang = lang;
+    localStorage.setItem("zach-lang", lang);
+    btnEs.classList.toggle("on", lang === "es");
+    btnEn.classList.toggle("on", lang === "en");
+    document.querySelectorAll("[data-es]").forEach((el) => {
+      el.innerHTML = el.dataset[lang] ?? el.dataset.es;
+    });
+    document.title = lang === "es"
+      ? "Zach — Webs y pedidos online para restaurantes"
+      : "Zach — Websites & online ordering for restaurants";
+  };
+  btnEs.addEventListener("click", () => setLang("es"));
+  btnEn.addEventListener("click", () => setLang("en"));
+  const saved = localStorage.getItem("zach-lang");
+  if (saved === "en") setLang("en");
+
+  /* ---- ticket timer ---- */
+  const t0 = Date.now();
+  const tt = document.getElementById("tickTimer");
+  setInterval(() => {
+    const s = Math.floor((Date.now() - t0) / 1000) + 7;
+    tt.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }, 1000);
+
+  /* ---- reveals with broken-observer safety net ---- */
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce && "IntersectionObserver" in window) {
+    let revealed = false;
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) { revealed = true; e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold: 0.1, rootMargin: "0px 0px -6% 0px" });
+    document.querySelectorAll(".rv").forEach((el) => io.observe(el));
+    const rescue = () => {
+      if (revealed) return;
+      const stuck = [...document.querySelectorAll(".rv:not(.in)")].some((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top < innerHeight * 0.8 && r.bottom > 0;
+      });
+      if (stuck) { io.disconnect(); document.querySelectorAll(".rv").forEach((el) => el.classList.add("in")); }
+    };
+    setTimeout(rescue, 2000);
+    addEventListener("scroll", () => setTimeout(rescue, 400), { passive: true, once: false });
+  } else {
+    document.querySelectorAll(".rv").forEach((el) => el.classList.add("in"));
+  }
+})();
+</script>
+</body>
+</html>
