@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #09090b;
+  --color-surface: #111114;
+  --color-raised: #18181d;
+  --color-line: #24242b;
+  --color-fg: #ececf1;
+  --color-muted: #8e8e99;
+  --color-faint: #5a5a65;
+  --color-accent: #7b6cff;
+  --color-accent-soft: #7b6cff26;
+  --color-ok: #3ecf8e;
+  --color-warn: #f2b65a;
+  --color-danger: #ff6b6b;
+  --font-sans: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-display: "Inter Display", "SF Pro Display", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+:root {
+  --font-scale: 1;
+  color-scheme: dark;
+}
+
+/* High contrast: pure black/white, stronger lines and a lighter accent. */
+:root[data-contrast="high"] {
+  --color-bg: #000;
+  --color-surface: #000;
+  --color-raised: #111;
+  --color-line: #8a8a8a;
+  --color-fg: #fff;
+  --color-muted: #dcdcdc;
+  --color-faint: #b4b4b4;
+  --color-accent: #b3a8ff;
+  --color-accent-soft: #b3a8ff33;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.lyric {
+  font-family: var(--font-display);
+  font-size: calc(clamp(1.45rem, 2.6vw, 2.15rem) * var(--font-scale));
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+.transcript-text {
+  font-size: calc(1.125rem * var(--font-scale));
+  line-height: 1.5;
+}
+
+.text-scaled {
+  font-size: calc(1rem * var(--font-scale));
+}
+
+@keyframes mic-pulse {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+.mic-pulse::before,
+.mic-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  animation: mic-pulse 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  z-index: -1;
+}
+.mic-pulse::after {
+  animation-delay: 0.9s;
+}
+
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="allow"]) .mic-pulse::before,
+  :root:not([data-motion="allow"]) .mic-pulse::after {
+    animation: none;
+  }
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+.sr-only-focusable:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
