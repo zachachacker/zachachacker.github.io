@@ -50,8 +50,8 @@ function Waveform({ level, active }: { level: number; active: boolean }) {
 
 function statusText(state: SpeechState, phase: FlowPhase, armed: boolean, hasDraft: boolean): string {
   if (phase === "checking") return "Checking the meaning…";
-  if (phase === "accepted") return "Got it";
-  if (phase === "issue") return "Have a look at this one";
+  if (phase === "accepted") return "Got it — keep talking to add more";
+  if (phase === "issue") return "Keep talking to add to it, or choose below";
   if (phase === "editing") return "Editing";
   switch (state) {
     case "starting":

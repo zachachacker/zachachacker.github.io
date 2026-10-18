@@ -70,3 +70,14 @@ describe("minimalCleanup", () => {
     expect(minimalCleanup("I I think that that's fine", { removeFillers: true })).toBe("I think that that's fine.");
   });
 });
+
+describe("joinSpoken", async () => {
+  const { joinSpoken } = await import("./cleanup");
+  it("continues a sentence said in two goes", () => {
+    expect(joinSpoken("Could we set up a meeting?", "to talk about it")).toBe("Could we set up a meeting to talk about it");
+    expect(joinSpoken("could we set up a meeting", "to talk about it")).toBe("could we set up a meeting to talk about it");
+  });
+  it("keeps a new sentence separate", () => {
+    expect(joinSpoken("My mum agrees with me.", "She's happy to talk.")).toBe("My mum agrees with me. She's happy to talk.");
+  });
+});

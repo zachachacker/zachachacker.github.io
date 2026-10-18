@@ -4,7 +4,7 @@
  */
 
 import type { DocumentSummary, RevoiceDocument, Settings } from "../types";
-import { DEFAULT_SETTINGS } from "../types";
+import { DEFAULT_SETTINGS, SETTINGS_VERSION } from "../types";
 
 export interface DocumentStore {
   list(): Promise<DocumentSummary[]>;
@@ -124,7 +124,7 @@ export class KeyValueDocumentStore implements DocumentStore {
   async getSettings(): Promise<Settings> {
     try {
       const raw = this.kv.getItem(SETTINGS);
-      return raw ? { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) } : { ...DEFAULT_SETTINGS };
+      return raw ? migrateSettings(JSON.parse(raw) as Partial<Settings>) : { ...DEFAULT_SETTINGS };
     } catch {
       return { ...DEFAULT_SETTINGS };
     }
@@ -153,6 +153,21 @@ export class MemoryKeyValue implements KeyValue {
   get length() {
     return this.map.size;
   }
+}
+
+/**
+ * Version 1 saved the old timing defaults (1.7 s silence, 0.7 s before moving
+ * on), which proved too short for people composing their own wording. Values
+ * the user never changed move to the new defaults; deliberate choices stay.
+ */
+export function migrateSettings(saved: Partial<Settings>): Settings {
+  const s = { ...DEFAULT_SETTINGS, ...saved };
+  if ((saved.settingsVersion ?? 1) < 2) {
+    if (saved.silenceMs === 1700) s.silenceMs = DEFAULT_SETTINGS.silenceMs;
+    if (saved.transitionDelayMs === 700) s.transitionDelayMs = DEFAULT_SETTINGS.transitionDelayMs;
+  }
+  s.settingsVersion = SETTINGS_VERSION;
+  return s;
 }
 
 let singleton: DocumentStore | null = null;

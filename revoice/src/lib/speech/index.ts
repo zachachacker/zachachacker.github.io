@@ -18,14 +18,14 @@ export function resolveProviderId(settings: Settings): Settings["speechProvider"
   return settings.speechProvider;
 }
 
-export function createProvider(id: Settings["speechProvider"]): SpeechProvider {
+export function createProvider(id: Settings["speechProvider"], opts: { refine?: boolean } = {}): SpeechProvider {
   switch (id) {
     case "openai":
       return new OpenAITranscriptionProvider();
     case "simulated":
       return new SimulatedSpeechProvider();
     default:
-      return new WebSpeechProvider();
+      return new WebSpeechProvider({ refine: opts.refine });
   }
 }
 
@@ -34,8 +34,11 @@ export function webSpeechSupported(): boolean {
 }
 
 /** Label, privacy note and support for a provider, without creating one. */
-export function providerMeta(id: Settings["speechProvider"]): { label: string; privacyNote: string; supported: boolean } {
-  const p = createProvider(id);
+export function providerMeta(
+  id: Settings["speechProvider"],
+  opts: { refine?: boolean } = {},
+): { label: string; privacyNote: string; supported: boolean } {
+  const p = createProvider(id, opts);
   const meta = { label: p.label, privacyNote: p.privacyNote, supported: p.isSupported() };
   p.dispose();
   return meta;

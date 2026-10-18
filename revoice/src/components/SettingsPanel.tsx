@@ -65,7 +65,8 @@ export function SettingsPanel({ onClose, onAdjustSegments }: { onClose(): void; 
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const providerNote = providerMeta(settings.speechProvider).privacyNote;
+  const refineAvailable = settings.speechProvider === "webspeech" && settings.aiEnabled && status?.transcription === true;
+  const providerNote = providerMeta(settings.speechProvider, { refine: refineAvailable && settings.refineTranscripts }).privacyNote;
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-black/50" onClick={onClose}>
@@ -126,6 +127,19 @@ export function SettingsPanel({ onClose, onAdjustSegments }: { onClose(): void; 
               {simulatedSpeechEnabled() && <option value="simulated">Simulated (testing)</option>}
             </select>
           </Row>
+          {settings.speechProvider === "webspeech" && (
+            <Row
+              label="Improve accuracy with OpenAI"
+              hint={
+                refineAvailable
+                  ? "Words still appear live; when you finish a line, OpenAI re-transcribes it for a more accurate result (adds about a second)."
+                  : "Needs AI checking on and an OpenAI key on the server."
+              }
+              htmlFor="s-refine"
+            >
+              <Toggle id="s-refine" checked={settings.refineTranscripts && refineAvailable} onChange={set("refineTranscripts")} />
+            </Row>
+          )}
           <Row label="Language" htmlFor="s-lang">
             <select id="s-lang" value={settings.speechLanguage} onChange={(e) => set("speechLanguage")(e.target.value)} className="h-9 rounded-lg border border-line bg-bg px-2 text-sm">
               {LANGUAGES.map(([v, l]) => (

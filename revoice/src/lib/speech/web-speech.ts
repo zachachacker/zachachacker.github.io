@@ -4,9 +4,59 @@
  * Supported in Chrome, Edge and Safari. Not in Firefox. In Chrome, audio is
  * sent to Google's speech service for recognition; Revoice itself stores no
  * audio.
+ *
+ * With `refine` on, the utterance is also recorded locally and, when it ends,
+ * re-transcribed by OpenAI's speech model: the browser recogniser gives the
+ * instant word-by-word text, OpenAI gives the more accurate final text.
  */
 
+import { api } from "../api/client";
+import { openMicrophone } from "./audio-level";
 import { SpeechError, type SpeechEvents, type SpeechProvider, type StartOptions } from "./types";
+
+/**
+ * Join recogniser results into one string. Chrome on Android repeats earlier
+ * text in each new result ("hello" / "hello how" / "hello how are you"), and
+ * desktop Chrome sometimes omits the space between results; both are handled.
+ */
+export function mergeResults(transcripts: string[]): string {
+  let acc = "";
+  for (const raw of transcripts) {
+    const t = raw.trim();
+    if (!t) continue;
+    const a = acc.toLowerCase();
+    const b = t.toLowerCase();
+    if (!acc || b.startsWith(a)) acc = t; // cumulative result replaces what we had
+    else if (a.endsWith(b) && b.split(" ").length >= 3) continue; // a whole phrase sent twice
+    else acc = `${acc} ${t}`;
+  }
+  return acc.replace(/\s+/g, " ").trim();
+}
+
+function words(s: string): string[] {
+  return s.toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? [];
+}
+
+/**
+ * Accept the refined transcript only if it is plausibly the same utterance:
+ * guards against the rare hallucinated or truncated transcription.
+ */
+export function plausibleRefinement(live: string, refined: string): boolean {
+  const lw = words(live);
+  const rw = words(refined);
+  if (!rw.length) return false;
+  if (lw.length < 3) return true;
+  if (rw.length < lw.length * 0.75 || rw.length > lw.length * 1.6 + 3) return false;
+  const set = new Set(rw);
+  const shared = lw.filter((w) => set.has(w)).length;
+  return shared / lw.length >= 0.4;
+}
+
+function pickMimeType(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  for (const t of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"]) if (MediaRecorder.isTypeSupported(t)) return t;
+  return undefined;
+}
 
 /* Minimal typings: the Web Speech API isn't in TypeScript's DOM lib. */
 interface SRAlternative { transcript: string }
@@ -37,9 +87,22 @@ function getCtor(): RecognitionCtor | null {
 
 export class WebSpeechProvider implements SpeechProvider {
   readonly id = "webspeech" as const;
-  readonly label = "Browser speech recognition";
-  readonly privacyNote =
-    "Your browser's built-in recogniser converts speech to text. In Chrome and Edge this sends audio to Google/Microsoft speech services. Revoice does not record or keep audio.";
+  readonly label: string;
+  readonly privacyNote: string;
+  private readonly refine: boolean;
+
+  private stream: MediaStream | null = null;
+  private recorder: MediaRecorder | null = null;
+  private chunks: Blob[] = [];
+  private generation = 0;
+
+  constructor(opts: { refine?: boolean } = {}) {
+    this.refine = !!opts.refine && typeof MediaRecorder !== "undefined";
+    this.label = this.refine ? "Browser speech + OpenAI accuracy" : "Browser speech recognition";
+    this.privacyNote = this.refine
+      ? "Your browser shows your words live (Chrome and Edge send audio to Google/Microsoft for this). When you finish a line, its audio is sent through the Revoice server to OpenAI for an accurate transcript, then discarded."
+      : "Your browser's built-in recogniser converts speech to text. In Chrome and Edge this sends audio to Google/Microsoft speech services. Revoice does not record or keep audio.";
+  }
 
   private rec: Recognition | null = null;
   private events: SpeechEvents | null = null;
@@ -62,13 +125,74 @@ export class WebSpeechProvider implements SpeechProvider {
     this.opts = opts;
     this.committed = "";
     this.current = "";
-    this.active = true;
     this.restarts = 0;
+    const gen = ++this.generation;
+    // Start recording before recognition so the first word is in both.
+    if (this.refine) await this.startRecorder();
+    if (gen !== this.generation) return;
+    this.active = true;
     this.spawn(Ctor);
   }
 
+  private async startRecorder() {
+    try {
+      if (!this.stream || this.stream.getAudioTracks().every((t) => t.readyState === "ended")) {
+        this.stream = await openMicrophone();
+      }
+      const mimeType = pickMimeType();
+      const rec = new MediaRecorder(this.stream, mimeType ? { mimeType } : undefined);
+      this.chunks = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size) this.chunks.push(e.data);
+      };
+      rec.start(250);
+      this.recorder = rec;
+    } catch {
+      // Refinement is an extra; live recognition still works without it.
+      this.recorder = null;
+    }
+  }
+
+  private async stopRecorder(): Promise<Blob | null> {
+    const rec = this.recorder;
+    this.recorder = null;
+    if (!rec || rec.state === "inactive") return null;
+    await new Promise<void>((resolve) => {
+      rec.onstop = () => resolve();
+      try {
+        rec.stop();
+      } catch {
+        resolve();
+      }
+    });
+    const blob = this.chunks.length ? new Blob(this.chunks, { type: this.chunks[0].type }) : null;
+    this.chunks = [];
+    return blob;
+  }
+
+  private async refineText(live: string, blob: Blob): Promise<string> {
+    const form = new FormData();
+    form.append("audio", blob, blob.type.includes("mp4") ? "utterance.mp4" : "utterance.webm");
+    form.append("language", (this.opts?.language ?? "en").slice(0, 2));
+    if (this.opts?.hints?.length) form.append("prompt", this.opts.hints.join(", "));
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const res = await api.transcribe(form, ctrl.signal);
+    clearTimeout(timer);
+    if (!res.ok) return live;
+    let refined = res.data.text.trim();
+    if (!plausibleRefinement(live, refined)) return live;
+    // The transcriber capitalises as if every clip starts a sentence; keep the live casing of the first word.
+    const lw = live.split(/\s+/)[0];
+    const rw = refined.split(/\s+/)[0];
+    if (lw && rw && lw !== "i" && /^[a-z]/.test(lw) && rw.toLowerCase().replace(/[^a-z']/g, "") === lw.toLowerCase()) {
+      refined = refined[0].toLowerCase() + refined.slice(1);
+    }
+    return refined;
+  }
+
   private text() {
-    return [this.committed, this.current].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+    return mergeResults([this.committed, this.current]);
   }
 
   private spawn(Ctor: RecognitionCtor) {
@@ -79,10 +203,10 @@ export class WebSpeechProvider implements SpeechProvider {
     rec.maxAlternatives = 1;
     rec.onresult = (e) => {
       if (this.rec !== rec || !this.active) return;
-      let text = "";
-      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+      const parts: string[] = [];
+      for (let i = 0; i < e.results.length; i++) parts.push(e.results[i][0].transcript);
       const prev = this.text();
-      this.current = text.trim();
+      this.current = mergeResults(parts);
       const next = this.text();
       if (next !== prev) {
         this.events?.onActivity();
@@ -141,11 +265,16 @@ export class WebSpeechProvider implements SpeechProvider {
   async finish(): Promise<string> {
     const text = this.text();
     this.stopRecognition();
-    return text;
+    const gen = ++this.generation;
+    const blob = await this.stopRecorder();
+    if (!text || !blob || gen !== this.generation) return text;
+    return this.refineText(text, blob);
   }
 
   cancel() {
+    this.generation++;
     this.stopRecognition();
+    void this.stopRecorder();
     this.committed = "";
     this.current = "";
   }
@@ -167,6 +296,8 @@ export class WebSpeechProvider implements SpeechProvider {
 
   dispose() {
     this.cancel();
+    this.stream?.getTracks().forEach((t) => t.stop());
+    this.stream = null;
     this.events = null;
   }
 }

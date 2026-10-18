@@ -42,8 +42,8 @@ Revoice needs a server for its API routes (that's where the key lives), so it **
 
 1. Paste text, optionally add a title, **Start rewriting**.
 2. Press **Space** (or the mic). Read the highlighted idea and say it your way.
-3. Stop talking. After ~1.7 s of silence (adapting to how you pause) Revoice finishes the segment, checks it, shows a ✓ and moves on. The mic stays on, so a whole email can be done hands-free.
-4. If something important is missing or changed, a calm note appears with **Add it in my own words**, **Review original**, **Keep my version** or **Say it again**. Minor differences never stop you.
+3. Stop talking. After ~2 s of silence Revoice checks what you said, shows a ✓ and moves on about a second later. The mic never closes in between: if you were only pausing to think and carry on talking, your words join the same line and it waits longer next time. A whole email can be done hands-free.
+4. If something important is missing or changed, a calm note appears. Just keep talking to add it, or choose **Add it in my own words**, **Review original**, **Keep my version** or **Say it again**. Minor differences never stop you.
 5. When every segment is done, the **Review** runs a whole-document check (missing info, repeats, contradictions, unclear references). Proposed fixes are only applied if you approve each one.
 6. **Export**: copy, download `.txt` / `.md`, or edit the full text first.
 
@@ -71,7 +71,7 @@ Settings (gear icon): auto-advance and its delay, silence threshold, adaptive pa
 
 | Speech provider | Works in | Notes |
 |---|---|---|
-| **Browser (default)** – Web Speech API | Chrome, Edge, Safari | Live word-by-word text. Chrome/Edge send audio to Google/Microsoft for recognition. **Not available in Firefox.** |
+| **Browser (default)** – Web Speech API | Chrome, Edge, Safari | Live word-by-word text. Chrome/Edge send audio to Google/Microsoft for recognition. **Not available in Firefox.** With an OpenAI key, each finished line is also re-transcribed by OpenAI for accuracy (Settings → *Improve accuracy with OpenAI*, on by default). |
 | **OpenAI** | Any browser with `MediaRecorder` (incl. Firefox) | Audio for each segment goes to your server, then to OpenAI, then is discarded. Live text refreshes every ~2.5 s rather than per word. |
 | Simulated | Dev/test only | Scripted speech for automated tests; always shows a "Simulated speech" badge. |
 
@@ -135,6 +135,7 @@ npm run lint             # TypeScript
 # End-to-end, in headless Chromium against a production build:
 NEXT_PUBLIC_ENABLE_SIMULATED_SPEECH=1 npm run build && npm start
 BASE_URL=http://localhost:3000 node e2e/run.mjs              # AI on (needs OPENAI_API_KEY)
+BASE_URL=http://localhost:3000 node e2e/flow-regressions.mjs # thinking pauses, talking during a note
 OFFLINE=1 BASE_URL=http://localhost:3000 node e2e/run.mjs    # AI off, offline checker
 
 # Meaning-checker accuracy against labelled cases (real model):

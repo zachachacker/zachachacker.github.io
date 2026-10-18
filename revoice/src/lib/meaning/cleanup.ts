@@ -49,3 +49,17 @@ export function minimalCleanup(raw: string, opts: CleanupOptions): string {
   }
   return s;
 }
+
+/**
+ * Join the words of a line said in two goes (the user paused, then carried
+ * on). If the second part starts in lower case it continues the sentence, so
+ * punctuation that was added to the end of the first part is dropped.
+ */
+export function joinSpoken(prefix: string, added: string): string {
+  const p = prefix.trim();
+  const a = added.trim();
+  if (!p) return a;
+  if (!a) return p;
+  if (/^[a-z]/.test(a) && /[.?!]$/.test(p)) return `${p.slice(0, -1)} ${a}`;
+  return `${p} ${a}`;
+}

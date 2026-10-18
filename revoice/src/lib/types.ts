@@ -198,27 +198,35 @@ export interface Settings {
   /** Send text to OpenAI for segmentation and checks. Off = local heuristics only. */
   aiEnabled: boolean;
   speechProvider: "webspeech" | "openai" | "simulated";
+  /** Browser provider only: re-transcribe each finished line with OpenAI for accuracy. */
+  refineTranscripts: boolean;
   speechLanguage: string;
   fontScale: number;
   highContrast: boolean;
   reducedMotion: "system" | "on" | "off";
   privacyNoticeSeen: boolean;
+  /** Bumped when defaults change so saved settings can be migrated. */
+  settingsVersion: number;
 }
+
+export const SETTINGS_VERSION = 2;
 
 export const DEFAULT_SETTINGS: Settings = {
   autoProgress: true,
-  transitionDelayMs: 700,
-  silenceMs: 1700,
+  transitionDelayMs: 1200,
+  silenceMs: 2000,
   adaptiveSilence: true,
   cleanup: "minimal",
   removeFillers: true,
   aiEnabled: true,
   speechProvider: "webspeech",
+  refineTranscripts: true,
   speechLanguage: "en-GB",
   fontScale: 1,
   highContrast: false,
   reducedMotion: "system",
   privacyNoticeSeen: false,
+  settingsVersion: SETTINGS_VERSION,
 };
 
 /** Summary row for the landing page, so the list doesn't load every document. */

@@ -8,7 +8,7 @@ import {
   addRevision, applyCheck, applySuggestion, canUndo, currentRevision, currentText, dismissSuggestion, isCheckStale,
   keepMyVersion, keepOriginal, nextOpenSegment, progress, setActive, skipSegment, undoRevision, unresolvedImportantIssues,
 } from "@/lib/document/operations";
-import { minimalCleanup } from "@/lib/meaning/cleanup";
+import { joinSpoken, minimalCleanup } from "@/lib/meaning/cleanup";
 import { checkSegment } from "@/lib/services/checker";
 import { resolveProviderId, providerMeta, SpeechError, simulatedSpeechEnabled } from "@/lib/speech";
 import { useAIActive, useServerStatus, useSettings } from "@/components/AppProviders";
@@ -45,6 +45,7 @@ export function SessionScreen({ id }: { id: string }) {
   const { doc, get, update, loadError, saveError } = useDocument(id);
   const { settings } = useSettings();
   const { reachable } = useServerStatus();
+  const speechRef = useRef<ReturnType<typeof useSpeech> | null>(null);
   const aiActive = useAIActive();
 
   const [mode, setMode] = useState<Mode>("rewrite");
@@ -65,8 +66,11 @@ export function SessionScreen({ id }: { id: string }) {
   /** Increments whenever the user moves; async results for an old position are ignored for flow purposes. */
   const flowToken = useRef(0);
 
+  const { status } = useServerStatus();
   const providerId = useMemo(() => resolveProviderId(settings), [settings]);
-  const providerInfo = useMemo(() => providerMeta(providerId), [providerId]);
+  // Browser recognition for live words + OpenAI for the final text, when available.
+  const refine = providerId === "webspeech" && settings.refineTranscripts && aiActive && status?.transcription === true;
+  const providerInfo = useMemo(() => providerMeta(providerId, { refine }), [providerId, refine]);
 
   const active: Segment | null = doc?.segments.find((s) => s.id === doc.activeSegmentId) ?? null;
   const activeIndex = doc && active ? doc.segments.indexOf(active) : -1;
@@ -83,6 +87,9 @@ export function SessionScreen({ id }: { id: string }) {
   const goToNextOpen = useCallback(() => {
     const d = get();
     if (!d) return;
+    // The user started talking again about this line: stay (onResume handles it).
+    if (speechRef.current?.hasNewWords()) return;
+    speechRef.current?.cancel();
     const next = nextOpenSegment(d, d.activeSegmentId);
     flowToken.current++;
     setShowDetails(false);
@@ -143,14 +150,12 @@ export function SessionScreen({ id }: { id: string }) {
       const d = get();
       const seg = d?.segments.find((s) => s.id === segmentId);
       if (!d || !seg) return;
-      let text = minimalCleanup(raw, { removeFillers: settings.removeFillers, original: seg.originalText });
-      if (source === "speech-append") {
-        const prev = currentText(seg) ?? "";
-        const joined = /[.!?,;:]$/.test(prev.trim()) || !prev ? prev : `${prev.trim()}.`;
-        text = `${joined} ${text}`.trim();
-      }
+      // An addition is joined to what was said before, as one piece of speech.
+      const prev = currentRevision(seg);
+      const rawFull = source === "speech-append" && prev ? joinSpoken(prev.rawTranscript ?? prev.text, raw) : raw;
+      const text = minimalCleanup(rawFull, { removeFillers: settings.removeFillers, original: seg.originalText });
       if (!text) return;
-      update((x) => addRevision(x, segmentId, { text, rawTranscript: source.startsWith("speech") ? raw : undefined, source }));
+      update((x) => addRevision(x, segmentId, { text, rawTranscript: source.startsWith("speech") ? rawFull : undefined, source }));
       void runCheck(segmentId, text, { advance });
     },
     [get, runCheck, settings.removeFillers, update],
@@ -162,6 +167,7 @@ export function SessionScreen({ id }: { id: string }) {
 
   const speech = useSpeech({
     providerId,
+    refine,
     language: settings.speechLanguage,
     silenceMs: settings.silenceMs,
     adaptive: settings.adaptiveSilence,
@@ -169,9 +175,18 @@ export function SessionScreen({ id }: { id: string }) {
       setDraft(null);
       saveVersion(ctx.segmentId, raw, ctx.mode === "append" ? "speech-append" : "speech", true);
     },
-    onEmpty: () => {
-      // Nothing heard: keep listening if still armed.
+    onEmpty: (ctx) => {
+      // Nothing heard. A fresh utterance restarts; a continuation just resumes waiting (the phase is unchanged).
+      if (!ctx.continuation) setPhase("idle");
+    },
+    onResume: (ctx) => {
+      // Still talking about this line after we thought they'd finished: hold the line, cancel the pending
+      // check/advance, and let the new words join the same segment.
+      if (get()?.activeSegmentId !== ctx.segmentId) return;
+      clearAdvance();
+      flowToken.current++;
       setPhase("idle");
+      setAnnounce("Still listening to this line.");
     },
     onError: (err) => {
       setSpeechError(err);
@@ -179,24 +194,35 @@ export function SessionScreen({ id }: { id: string }) {
       setPhase("idle");
     },
   });
+  speechRef.current = speech;
 
-  // Start listening whenever the mic is armed and the flow is idle.
+  // Keep the mic open whenever it is armed:
+  //  - idle: a fresh utterance for the active line;
+  //  - while checking, after acceptance, or while a note is shown: a continuation, so if the
+  //    user keeps talking their words are added to this line instead of being lost or landing
+  //    on the next one.
   useEffect(() => {
-    if (!doc || !active || mode !== "rewrite" || !armed || phase !== "idle" || speech.state !== "off") return;
-    const ctx: UtteranceContext = { segmentId: active.id, mode: nextModeRef.current };
-    nextModeRef.current = "replace";
-    const prefix = draft?.segmentId === active.id ? draft.text : "";
+    if (!doc || !active || mode !== "rewrite" || !armed || speech.state !== "off") return;
     const hints = active.keyPoints.filter((k) => k.kind === "name").map((k) => k.text);
-    setSpeechError(null);
-    void speech.start(ctx, { hints }, prefix);
+    if (phase === "idle") {
+      const ctx: UtteranceContext = { segmentId: active.id, mode: nextModeRef.current };
+      nextModeRef.current = "replace";
+      const prefix = draft?.segmentId === active.id ? draft.text : "";
+      setSpeechError(null);
+      void speech.start(ctx, { hints }, prefix);
+    } else if (phase === "checking" || phase === "accepted" || phase === "issue") {
+      const rev = currentRevision(active);
+      if (!rev || rev.source === "kept-original") return;
+      // Continue from the raw words, not the punctuated version, so a carried-on sentence stays one sentence.
+      void speech.start({ segmentId: active.id, mode: "replace", continuation: true }, { hints }, rev.rawTranscript ?? rev.text);
+    }
   }, [doc, active, mode, armed, phase, speech, draft]);
 
   // Leaving the rewrite view or disarming stops the mic, keeping any words said so far.
   useEffect(() => {
     if ((mode !== "rewrite" || !armed) && speech.state !== "off" && speech.state !== "finishing") {
-      const ctx = speech.activeContext();
-      void speech.pause().then((kept) => {
-        if (kept && ctx) setDraft({ segmentId: ctx.segmentId, text: kept });
+      void speech.pause().then(({ text, hasNew, ctx }) => {
+        if (hasNew && ctx) setDraft({ segmentId: ctx.segmentId, text });
       });
     }
   }, [mode, armed, speech]);
@@ -248,9 +274,8 @@ export function SessionScreen({ id }: { id: string }) {
       flowToken.current++;
       // Never lose words: anything said for the old segment is saved to it.
       if (speech.state !== "off") {
-        const ctx = speech.activeContext();
-        const kept = await speech.pause();
-        if (kept && ctx) saveVersion(ctx.segmentId, kept, ctx.mode === "append" ? "speech-append" : "speech", false);
+        const { text, hasNew, ctx } = await speech.pause();
+        if (hasNew && ctx) saveVersion(ctx.segmentId, text, ctx.mode === "append" ? "speech-append" : "speech", false);
       }
       speech.clearPartial();
       setDraft(null);
@@ -283,23 +308,26 @@ export function SessionScreen({ id }: { id: string }) {
       return;
     }
     setSpeechError(null);
-    if (phase === "accepted" || phase === "issue") {
-      clearAdvance();
-      setPhase("idle");
-    }
     setArmed(true);
   }, [armed, phase]);
 
   const done = useCallback(() => {
-    if (speech.state === "listening" || speech.state === "hearing") {
+    // Mid-sentence: finish it now (it is then checked as usual).
+    if (speech.hasNewWords()) {
       void speech.finish();
       return;
     }
     const d = get();
     const seg = d?.segments.find((s) => s.id === d.activeSegmentId);
     if (!seg) return;
-    if (currentText(seg) && seg.status !== "completed") update((x) => keepMyVersion(x, seg.id));
-    if (currentText(seg)) goToNextOpen();
+    if (!currentText(seg)) {
+      if (speech.state === "listening" || speech.state === "hearing") void speech.finish();
+      return;
+    }
+    // "I'm done with this line": accept it as it stands and move on.
+    clearAdvance();
+    if (seg.status !== "completed") update((x) => keepMyVersion(x, seg.id));
+    goToNextOpen();
   }, [get, goToNextOpen, speech, update]);
 
   const redo = useCallback(() => {
@@ -326,7 +354,10 @@ export function SessionScreen({ id }: { id: string }) {
     flowToken.current++;
     armedBeforeEdit.current = armed;
     let kept = "";
-    if (speech.state !== "off") kept = await speech.pause();
+    if (speech.state !== "off") {
+      const r = await speech.pause();
+      if (r.hasNew) kept = r.text;
+    }
     setArmed(false);
     if (kept) setDraft({ segmentId: active.id, text: kept });
     setPhase("editing");
@@ -358,11 +389,18 @@ export function SessionScreen({ id }: { id: string }) {
   }, [active, goToNextOpen, settings.autoProgress, settings.transitionDelayMs, update]);
 
   const addDetail = useCallback(() => {
-    nextModeRef.current = "append";
+    clearAdvance();
     setShowDetails(true);
+    // If the mic is already open on this line, whatever is said next is added to it.
+    if (speech.isContinuation()) {
+      flowToken.current++;
+      setPhase("idle");
+      return;
+    }
+    nextModeRef.current = "append";
     setPhase("idle");
     setArmed(true);
-  }, []);
+  }, [speech]);
 
   // Keyboard shortcuts.
   useEffect(() => {
