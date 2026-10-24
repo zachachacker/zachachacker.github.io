@@ -50,6 +50,34 @@
   }
   #tip.on { opacity: 1; transform: translate(14px, 14px) scale(1); }
 
+
+  /* project switcher */
+  #switcher {
+    position: fixed; right: clamp(16px, 4vw, 56px); bottom: 28px; z-index: 25;
+    display: flex; align-items: center; gap: 4px; padding: 6px;
+    background: rgba(238,241,245,0.86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-radius: 99px; box-shadow: 0 10px 30px -14px rgba(18,24,38,0.35);
+    opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity 0.35s, transform 0.35s, visibility 0.35s;
+  }
+  #switcher.on { opacity: 1; visibility: visible; transform: none; }
+  #switcher button {
+    width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
+    background: var(--ink); color: var(--haze); transition: background 0.2s, opacity 0.2s;
+  }
+  #switcher button:hover { background: var(--cobalt); }
+  #switcher button:disabled { opacity: 0.25; cursor: default; background: var(--ink); }
+  #switcher .label { display: grid; padding-inline: 12px; min-width: 9.5rem; line-height: 1.25; }
+  #switcher .count { font-size: 0.78rem; color: var(--slate); }
+  #switcher .name { font-weight: 650; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 13rem; }
+  .no-js #switcher { display: none; }
+  @media (max-width: 860px), (max-aspect-ratio: 1/1) {
+    #switcher { bottom: 14px; right: 50%; transform: translate(50%, 12px); }
+    #switcher.on { transform: translate(50%, 0); }
+    #switcher button { width: 34px; height: 34px; }
+    #switcher .label { min-width: 0; }
+    #switcher .count { display: none; }
+  }
+
   /* loader */
   #loader { position: fixed; inset: 0; z-index: 50; background: var(--studio); display: grid; place-items: center; }
   #loader p { font-stretch: 125%; font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; }
@@ -104,8 +132,9 @@
   .work-intro p { margin-top: 18px; max-width: 26rem; color: var(--slate); }
   .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 
-  .proj { min-height: 100vh; display: flex; align-items: center; padding-block: 96px; }
-  .proj .wrap { width: 100%; }
+  /* each project is a tall section; its write-up stays pinned while the screen scrolls through the site */
+  .proj { min-height: 180vh; }
+  .proj > .wrap { position: sticky; top: 0; min-height: 100vh; display: flex; align-items: center; padding-block: 96px; }
   .info { max-width: 27rem; }
   .status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; padding: 6px 12px 6px 10px; border-radius: 99px; background: var(--haze); }
   .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
@@ -125,6 +154,7 @@
   .fallback { display: none; margin-top: 26px; border-radius: 12px; box-shadow: 0 20px 40px -20px rgba(18,24,38,0.4); }
   .no-gl .fallback, .no-js .fallback { display: block; }
   .no-gl .proj, .no-js .proj { min-height: 0; }
+  .no-gl .proj > .wrap, .no-js .proj > .wrap { position: static; min-height: 0; }
 
   /* ------------------------------------------------------------- services */
   .services { background: var(--haze); padding-block: clamp(80px, 11vw, 150px); position: relative; }
@@ -157,7 +187,7 @@
     .hero::before { content: ""; position: absolute; inset: 40% 0 0; background: linear-gradient(rgba(220,225,232,0), var(--studio) 38%); pointer-events: none; }
     .hero .wrap { position: relative; }
     .hint { margin-top: 26px; }
-    .proj { align-items: flex-end; padding-block: 0 24px; }
+    .proj > .wrap { align-items: flex-end; padding-block: 0 76px; }
     .info { max-width: none; background: rgba(238,241,245,0.9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-radius: 20px; padding: 22px 20px 24px; }
     .work-intro { align-items: flex-end; padding-bottom: 32px; }
     .cols { grid-template-columns: 1fr; }
@@ -176,7 +206,7 @@
       content: ""; position: absolute; inset: 0; pointer-events: none;
       background: linear-gradient(90deg, var(--studio) 0, rgba(220,225,232,0.92) 30%, rgba(220,225,232,0) 46%);
     }
-    .hero .wrap, .proj .wrap { position: relative; }
+    .hero .wrap { position: relative; }
     .no-gl .hero::before, .no-gl .proj::before { display: none; }
   }
   @media (prefers-reduced-motion: reduce) { .visit, .mail, .btn { transition: none; } }
@@ -194,6 +224,11 @@
 <div id="loader" aria-hidden="true"><p>Zach</p><div class="bar"><i></i></div></div>
 <canvas id="gl" aria-label="The six projects on a rotating turntable" role="img"></canvas>
 <div id="tip" aria-hidden="true"></div>
+<div id="switcher" aria-label="Step through the projects">
+  <button class="prev" type="button" aria-label="Previous project"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <div class="label" aria-live="polite"><span class="count"></span><span class="name"></span></div>
+  <button class="next" type="button" aria-label="Next project"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</div>
 
 <nav>
   <div class="wrap">
@@ -362,12 +397,16 @@
 <script type="module">
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const root = document.documentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sections = [...document.querySelectorAll('.proj')];
-const PROJECTS = sections.map(s => ({ name: s.dataset.name, img: s.dataset.img, url: s.dataset.url }));
+const PROJECTS = sections.map(s => ({ name: s.dataset.name, img: s.dataset.img, full: s.dataset.img.replace('img/', 'img/full/'), url: s.dataset.url }));
+const N = PROJECTS.length;
 const STUDIO = '#DCE1E8';
+const clamp01 = v => Math.min(1, Math.max(0, v));
+const smoothstep = (a, b, v) => { const x = clamp01((v - a) / (b - a)); return x * x * (3 - 2 * x); };
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -379,12 +418,15 @@ if (!reduce && window.Lenis) {
   gsap.ticker.add(t => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
 }
+function goTo(target) {
+  if (lenis) lenis.scrollTo(target, { duration: 1.6 });
+  else target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+}
 document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
   const target = document.querySelector(a.getAttribute('href'));
   if (!target) return;
   e.preventDefault();
-  if (lenis) lenis.scrollTo(target, { duration: 1.6 });
-  else target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  goTo(target);
 }));
 
 // Split the headline into words so the intro can lift them in.
@@ -393,14 +435,43 @@ h1.setAttribute('aria-label', h1.textContent.trim());
 h1.innerHTML = h1.textContent.trim().split(/\s+/).map(w => `<span class="w" aria-hidden="true"><span>${w}</span></span>`).join(' ');
 
 // Scroll state the scene reads every frame.
+// f runs 0..N across the project sections: f = i at the top of section i, i + 1 at its bottom.
 const state = { hero: 0, f: 0, fade: 1 };
 ScrollTrigger.create({ trigger: '#top', start: 'top top', end: 'bottom top', onUpdate: s => { state.hero = s.progress; } });
-ScrollTrigger.create({ trigger: '#projects', start: 'top top', end: 'bottom bottom', onUpdate: s => { state.f = s.progress * (PROJECTS.length - 1); } });
 ScrollTrigger.create({ trigger: '#services', start: 'top bottom', end: 'top 30%', onUpdate: s => { state.fade = 1 - s.progress; } });
+function readF() {
+  const first = sections[0].getBoundingClientRect();
+  if (first.top > 0) return 0;
+  for (let i = 0; i < N; i++) {
+    const r = sections[i].getBoundingClientRect();
+    if (r.bottom > 0) return i + clamp01(-r.top / r.height);
+  }
+  return N;
+}
 
 const nav = document.querySelector('nav');
 ScrollTrigger.create({ start: 40, end: 'max', toggleClass: { targets: nav, className: 'scrolled' } });
 ScrollTrigger.create({ trigger: '#contact', start: 'top 72px', end: 'max', toggleClass: { targets: nav, className: 'on-ink' } });
+
+// Project switcher: visible while the projects are on screen, steps the table one project at a time.
+const switcher = document.getElementById('switcher');
+const swCount = switcher.querySelector('.count');
+const swName = switcher.querySelector('.name');
+let current = -1;
+ScrollTrigger.create({ trigger: '#projects', start: 'top 60%', end: 'bottom 40%', toggleClass: { targets: switcher, className: 'on' } });
+switcher.querySelector('.prev').addEventListener('click', () => goTo(sections[Math.max(0, current - 1)]));
+switcher.querySelector('.next').addEventListener('click', () => {
+  if (current >= N - 1) goTo(document.getElementById('services'));
+  else goTo(sections[current + 1]);
+});
+function setCurrent(i) {
+  if (i === current) return;
+  current = i;
+  swCount.textContent = `${i + 1} of ${N}`;
+  swName.textContent = PROJECTS[i].name;
+  switcher.querySelector('.prev').disabled = i === 0;
+}
+setCurrent(0);
 
 const loader = document.getElementById('loader');
 const loaderBar = loader.querySelector('i');
@@ -422,6 +493,7 @@ try { scene = initScene(); } catch (err) { console.warn('3D unavailable, showing
 if (!scene) {
   root.classList.add('no-gl');
   intro(null);
+  gsap.ticker.add(() => { const f = readF(); setCurrent(Math.min(N - 1, Math.floor(f))); });
 } else {
   scene.ready.then(() => intro(scene));
 }
@@ -449,10 +521,12 @@ function initScene() {
 
   const scene3 = new THREE.Scene();
   scene3.fog = new THREE.Fog(STUDIO, 8, 18);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene3.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
 
-  scene3.add(new THREE.HemisphereLight(0xffffff, 0xb4bdcb, 1.7));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+  scene3.add(new THREE.HemisphereLight(0xffffff, 0xb4bdcb, 0.7));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.3);
   sun.position.set(3, 10, 6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -467,15 +541,17 @@ function initScene() {
   scene3.add(floor);
 
   // The turntable: one slab per project, facing outwards around a ring.
-  const W = 3, H = 1.875, R = 4.1, N = PROJECTS.length, STEP = Math.PI * 2 / N;
+  const W = 3, H = 1.875, R = 4.1, STEP = Math.PI * 2 / N;
   const wrap = new THREE.Group();
   const ring = new THREE.Group();
   wrap.add(ring);
   scene3.add(wrap);
 
-  const bodyGeo = new RoundedBoxGeometry(W + 0.14, H + 0.14, 0.12, 4, 0.07);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf7f8fa, roughness: 0.42 });
+  // Brushed-aluminium body, the site on an unlit screen so its colours stay true, and a thin glass pane over it.
+  const bodyGeo = new RoundedBoxGeometry(W + 0.14, H + 0.14, 0.12, 5, 0.07);
+  const bodyMat = new THREE.MeshPhysicalMaterial({ color: 0xe9ecf0, metalness: 0.65, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 });
   const screenGeo = roundedPlane(W, H, 0.06);
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.1, envMapIntensity: 1.6, depthWrite: false });
   const manager = new THREE.LoadingManager();
   const texLoader = new THREE.TextureLoader(manager);
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -491,16 +567,28 @@ function initScene() {
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     body.castShadow = true;
     slab.add(body);
-    const tex = texLoader.load(p.img);
+    const s = { slab, a, drop: { y: 0 }, hover: 0, scroll: 0, frac: 1 };
+    // Each screen shows the whole page, a window of it at a time, so it can scroll through the real site.
+    const tex = texLoader.load(p.full, t => {
+      const img = t.image;
+      s.frac = Math.min(1, (img.width / (W / H)) / img.height);
+      t.repeat.set(1, s.frac);
+      t.offset.set(0, 1 - s.frac);
+    });
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = maxAniso;
-    const screen = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: tex }));
+    const screen = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
     screen.position.z = 0.062;
     screen.userData.i = i;
     slab.add(screen);
+    const glass = new THREE.Mesh(screenGeo, glassMat);
+    glass.position.z = 0.066;
+    slab.add(glass);
     screens.push(screen);
     ring.add(pivot);
-    return { slab, screen, a, drop: { y: 0 }, hover: 0 };
+    s.screen = screen;
+    s.tex = tex;
+    return s;
   });
 
   const ready = new Promise(resolve => {
@@ -508,7 +596,7 @@ function initScene() {
     const finish = () => { if (!done) { done = true; loaderBar.style.width = '100%'; setTimeout(resolve, 250); } };
     manager.onProgress = (_, loaded, total) => { loaderBar.style.width = `${(loaded / total) * 100}%`; };
     manager.onLoad = finish;
-    setTimeout(finish, 6000);
+    setTimeout(finish, 8000);
   });
 
   // Layout: keep the front slab a set share of the screen, to the right on wide screens, up top on tall ones.
@@ -536,10 +624,10 @@ function initScene() {
   resize();
   addEventListener('resize', resize);
 
-  // Pointer: tilt the scene, spin the table by dragging, hover and click a screen to open it.
+  // Pointer: tilt the scene, spin the table by dragging (mouse or a sideways swipe), click a screen to open it.
   const pointer = { x: 0, y: 0, tx: 0, ty: 0, down: false, moved: 0, lastX: 0 };
   const spin = { v: 0 };
-  let drag = 0, dragVel = 0, anchor = 0, hovered = -1;
+  let drag = 0, dragVel = 0, anchor = 0, hovered = -1, lean = 0;
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const tip = document.getElementById('tip');
@@ -553,8 +641,10 @@ function initScene() {
     return Math.cos(slabs[i].a + ring.rotation.y) > 0.3 ? i : -1;
   }
   addEventListener('pointermove', e => {
-    pointer.tx = (e.clientX / innerWidth) * 2 - 1;
-    pointer.ty = (e.clientY / innerHeight) * 2 - 1;
+    if (e.pointerType !== 'touch') {
+      pointer.tx = (e.clientX / innerWidth) * 2 - 1;
+      pointer.ty = (e.clientY / innerHeight) * 2 - 1;
+    }
     if (pointer.down) {
       const dx = e.clientX - pointer.lastX;
       pointer.lastX = e.clientX;
@@ -572,10 +662,10 @@ function initScene() {
     canvas.className = pointer.down ? 'grabbing' : hovered >= 0 ? 'point' : state.hero < 0.5 ? 'grab' : '';
   });
   canvas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') return;
     pointer.down = true; pointer.moved = 0; pointer.lastX = e.clientX;
-    canvas.setPointerCapture(e.pointerId);
+    if (e.pointerType !== 'touch') canvas.setPointerCapture(e.pointerId);
   });
+  canvas.addEventListener('pointercancel', () => { pointer.down = false; });
   canvas.addEventListener('pointerup', e => {
     pointer.down = false;
     if (pointer.moved < 6) {
@@ -589,6 +679,7 @@ function initScene() {
   gsap.ticker.add(() => {
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
+    state.f = readF();
     if (state.fade <= 0.002) { canvas.style.visibility = 'hidden'; return; }
     canvas.style.visibility = 'visible';
     canvas.style.opacity = state.fade;
@@ -600,15 +691,27 @@ function initScene() {
       drag += dragVel; dragVel *= 0.94;               // drag inertia
     }
     if (atTop) anchor = Math.round(drag / (Math.PI * 2)) * Math.PI * 2;
-    const work = -state.f * STEP + anchor;
+    // Hold each project at the front while its section scrolls, then turn to the next one.
+    const k = Math.floor(state.f);
+    const turn = Math.min(N - 1, k + smoothstep(0.46, 0.96, state.f - k));
+    setCurrent(Math.round(turn));
+    const work = -turn * STEP + anchor;
     const target = drag + (work - drag) * w + spin.v;
     ring.rotation.y += (target - ring.rotation.y) * smooth(reduce ? 14 : 5, dt);
 
+    // The table leans with scroll speed and settles back, like it has weight.
+    const vel = lenis ? lenis.velocity : 0;
+    lean += (Math.max(-0.22, Math.min(0.22, vel * 0.006)) - lean) * smooth(4, dt);
+
     pointer.x += (pointer.tx - pointer.x) * smooth(3, dt);
     pointer.y += (pointer.ty - pointer.y) * smooth(3, dt);
-    wrap.rotation.x = 0.05 + pointer.y * 0.05;
+    wrap.rotation.x = 0.05 + pointer.y * 0.05 + lean;
     wrap.rotation.z = -pointer.x * 0.025;
-    wrap.position.set(layout.xHero + (layout.xWork - layout.xHero) * w + pointer.x * 0.15, layout.y - pointer.y * 0.08, 0);
+    wrap.position.set(
+      layout.xHero + (layout.xWork - layout.xHero) * w + pointer.x * 0.15,
+      layout.y - pointer.y * 0.08 - (1 - state.fade) * 2.2,
+      0
+    );
 
     slabs.forEach((s, i) => {
       const facing = Math.cos(s.a + ring.rotation.y);
@@ -621,6 +724,14 @@ function initScene() {
       s.slab.rotation.x = reduce ? 0 : Math.sin(t * 0.6 + i) * 0.03;
       s.slab.scale.setScalar((1 - 0.12 * w + 0.12 * focus) * (1 + 0.04 * s.hover));
       s.screen.material.color.setScalar(1 - 0.35 * w + 0.35 * focus);
+
+      // Screen scroll: in the hero each site drifts slowly up and down; in a project section,
+      // scrolling the page scrolls that site from top to bottom.
+      const idle = reduce ? 0 : 0.5 - 0.5 * Math.cos(t * 0.12 + i * 1.7);
+      const page = smoothstep(0.02, 0.42, state.f - i);
+      const want = idle * (1 - w) + page * w;
+      s.scroll += (want - s.scroll) * smooth(6, dt);
+      if (s.frac < 1) s.tex.offset.y = (1 - s.frac) * (1 - s.scroll);
     });
 
     renderer.render(scene3, camera);
