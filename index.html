@@ -1,364 +1,633 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>zach. | Websites, ordering and apps</title>
+<title>Zach | Websites, online ordering and apps</title>
 <meta name="description" content="Zach builds websites, online ordering and apps for real businesses. Based in Bedford, UK.">
-<meta property="og:title" content="zach.">
+<meta property="og:title" content="Zach | Websites, online ordering and apps">
 <meta property="og:description" content="Websites, online ordering and apps for real businesses.">
 <meta property="og:image" content="img/lilys.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F4F1EA;
-    --bg-2: #EAE5DA;
-    --ink: #16150F;
-    --ink-soft: #625E54;
-    --line: rgba(22, 21, 15, 0.14);
-    --dot: #E8551F;
-    --live: #2F8F4E;
-    --serif: "Instrument Serif", Georgia, serif;
-    --sans: "Manrope", system-ui, sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --studio: #DCE1E8;
+    --haze: #EEF1F5;
+    --ink: #121826;
+    --slate: #5B6578;
+    --cobalt: #2B45E0;
+    --live: #17864C;
+    --wip: #B86A0B;
+    --font: "Archivo", system-ui, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
   body {
-    font-family: var(--sans); font-size: 1.05rem; line-height: 1.6;
-    background: var(--bg); color: var(--ink);
+    font-family: var(--font); font-size: 1.06rem; line-height: 1.6; font-stretch: 100%;
+    background: var(--studio); color: var(--ink);
     -webkit-font-smoothing: antialiased; overflow-x: hidden;
   }
   a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 4px; border-radius: 4px; }
   img { display: block; max-width: 100%; }
-  .wrap { max-width: 1240px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 48px); }
-  .mono { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .wrap { max-width: 1320px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 56px); }
+  .wide { font-stretch: 125%; }
 
-  /* reveals: visible by default, .js gates the hidden state */
-  .js .rv { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
-  .js .rv.in { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) { .js .rv { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
-
-  /* ---------------------------------------------------------------- nav */
-  nav {
-    position: sticky; top: 0; z-index: 20;
-    background: color-mix(in srgb, var(--bg) 86%, transparent);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid transparent; transition: border-color 0.3s;
+  /* ------------------------------------------------------------ 3D stage */
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; touch-action: pan-y; }
+  #gl.grab { cursor: grab; }
+  #gl.point { cursor: pointer; }
+  #gl.grabbing { cursor: grabbing; }
+  .no-gl #gl, .no-js #gl { display: none; }
+  #tip {
+    position: fixed; left: 0; top: 0; z-index: 30; pointer-events: none;
+    background: var(--ink); color: var(--haze); font-size: 0.86rem; font-weight: 600;
+    padding: 7px 12px; border-radius: 99px; white-space: nowrap;
+    opacity: 0; transform: translate(14px, 14px) scale(0.9); transition: opacity 0.2s, transform 0.2s;
   }
-  nav.scrolled { border-bottom-color: var(--line); }
-  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-  .logo { font-family: var(--serif); font-size: 1.9rem; text-decoration: none; letter-spacing: -0.01em; line-height: 1; }
-  .logo span { color: var(--dot); }
-  nav ul { display: flex; gap: clamp(14px, 3vw, 32px); list-style: none; align-items: center; }
-  nav ul a { text-decoration: none; font-size: 0.92rem; font-weight: 500; color: var(--ink-soft); transition: color 0.2s; }
-  nav ul a:hover { color: var(--ink); }
-  nav .cta { color: var(--bg); background: var(--ink); padding: 9px 16px; border-radius: 99px; }
-  nav .cta:hover { color: var(--bg); background: #000; }
+  #tip.on { opacity: 1; transform: translate(14px, 14px) scale(1); }
 
-  /* --------------------------------------------------------------- hero */
-  .hero { padding-top: clamp(56px, 11vw, 130px); padding-bottom: clamp(48px, 7vw, 90px); }
-  .hero .mono { color: var(--ink-soft); display: flex; align-items: center; gap: 10px; }
-  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--live); box-shadow: 0 0 0 0 rgba(47,143,78,0.5); animation: pulse 2.4s infinite; }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(47,143,78,0.45); } 70% { box-shadow: 0 0 0 10px rgba(47,143,78,0); } 100% { box-shadow: 0 0 0 0 rgba(47,143,78,0); } }
+  /* loader */
+  #loader { position: fixed; inset: 0; z-index: 50; background: var(--studio); display: grid; place-items: center; }
+  #loader p { font-stretch: 125%; font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; }
+  #loader .bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: rgba(18,24,38,0.08); }
+  #loader .bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width 0.3s ease; }
+  .no-js #loader { display: none; }
+
+  /* content layers sit above the canvas, but only their real content catches the pointer */
+  main, nav { position: relative; z-index: 2; }
+  main { pointer-events: none; }
+  .services, .contact { pointer-events: auto; }
+  .pass { pointer-events: none; }
+  .pass a, .pass button, .pass p, .pass h1, .pass h2, .pass h3, .pass ul, .pass .info { pointer-events: auto; }
+
+  /* ------------------------------------------------------------------ nav */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 20; transition: background 0.3s, color 0.3s; }
+  nav.scrolled { background: rgba(220,225,232,0.72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  nav.on-ink { background: rgba(18,24,38,0.72); color: var(--haze); }
+  nav.on-ink .pill { background: var(--haze); color: var(--ink); }
+  nav.on-ink .pill:hover { background: #8FA0FF; }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .brand { font-stretch: 125%; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.03em; text-decoration: none; }
+  nav ul { display: flex; align-items: center; gap: clamp(14px, 2.6vw, 30px); list-style: none; }
+  nav ul a { text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+  nav ul a:not(.pill):hover { color: var(--cobalt); }
+  .pill { display: inline-block; background: var(--ink); color: var(--haze); padding: 10px 18px; border-radius: 99px; font-weight: 600; transition: background 0.2s; }
+  .pill:hover { background: var(--cobalt); }
+
+  /* ----------------------------------------------------------------- hero */
+  .hero { min-height: 100svh; display: flex; align-items: center; padding-block: 110px 64px; }
+  .hero .wrap { width: 100%; }
+  .hero-copy { max-width: 46rem; }
   .hero h1 {
-    font-family: var(--serif); font-weight: 400;
-    font-size: clamp(3rem, 9.2vw, 8.6rem); line-height: 0.93; letter-spacing: -0.025em;
-    margin-top: 28px; max-width: 13ch;
+    font-stretch: 125%; font-weight: 800; letter-spacing: -0.035em;
+    font-size: clamp(2.6rem, 5.6vw, 5.6rem); line-height: 0.94; max-width: 9.5ch;
   }
-  .hero h1 em { font-style: italic; color: var(--dot); }
-  .hero-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 28px; margin-top: clamp(32px, 5vw, 56px); }
-  .hero-foot p { max-width: 34rem; font-size: 1.15rem; color: var(--ink-soft); }
-  .hero-foot p strong { color: var(--ink); font-weight: 600; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
-    font-weight: 600; font-size: 0.98rem; padding: 15px 24px; border-radius: 99px;
-    background: var(--ink); color: var(--bg); transition: transform 0.25s, background 0.25s;
+  .hero h1 .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+  .hero h1 .w > span { display: inline-block; }
+  .lede { margin-top: 28px; max-width: 30rem; font-size: 1.15rem; color: var(--slate); }
+  .lede strong { color: var(--ink); font-weight: 600; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+  .btn { display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; padding: 15px 24px; border-radius: 99px; transition: background 0.2s, color 0.2s, transform 0.2s; }
+  .btn.solid { background: var(--ink); color: var(--haze); }
+  .btn.solid:hover { background: var(--cobalt); }
+  .btn.line { box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .btn.line:hover { background: var(--ink); color: var(--haze); }
+  .hint { margin-top: 44px; font-size: 0.9rem; color: var(--slate); }
+
+  /* ----------------------------------------------------------------- work */
+  .work-intro { min-height: 70vh; display: flex; align-items: center; }
+  .work-intro h2 { font-stretch: 125%; font-weight: 800; letter-spacing: -0.03em; font-size: clamp(2.2rem, 4.6vw, 4.2rem); line-height: 0.98; max-width: 11ch; }
+  .work-intro p { margin-top: 18px; max-width: 26rem; color: var(--slate); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+
+  .proj { min-height: 100vh; display: flex; align-items: center; padding-block: 96px; }
+  .proj .wrap { width: 100%; }
+  .info { max-width: 27rem; }
+  .status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; padding: 6px 12px 6px 10px; border-radius: 99px; background: var(--haze); }
+  .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+  .status.live { color: var(--live); }
+  .status.live::before { background: var(--live); box-shadow: 0 0 0 3px rgba(23,134,76,0.18); }
+  .status.wip { color: var(--wip); }
+  .status.wip::before { border: 2px solid var(--wip); width: 6px; height: 6px; }
+  .proj h3 { font-stretch: 125%; font-weight: 750; letter-spacing: -0.03em; font-size: clamp(2rem, 3.6vw, 3.3rem); line-height: 0.98; margin-top: 18px; }
+  .where { margin-top: 10px; color: var(--slate); font-size: 0.96rem; }
+  .desc { margin-top: 18px; }
+  .built { list-style: none; margin-top: 18px; display: grid; gap: 4px; }
+  .built li { padding-left: 18px; position: relative; font-size: 0.97rem; }
+  .built li::before { content: ""; position: absolute; left: 0; top: 0.68em; width: 8px; height: 2px; background: var(--cobalt); }
+  .visit { display: inline-block; margin-top: 24px; font-weight: 600; color: var(--cobalt); text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1.5px no-repeat; padding-bottom: 2px; transition: background-size 0.3s; }
+  .visit:hover { background-size: 0 1.5px; background-position: 100% 100%; }
+  .visit + .visit { margin-left: 18px; }
+  .fallback { display: none; margin-top: 26px; border-radius: 12px; box-shadow: 0 20px 40px -20px rgba(18,24,38,0.4); }
+  .no-gl .fallback, .no-js .fallback { display: block; }
+  .no-gl .proj, .no-js .proj { min-height: 0; }
+
+  /* ------------------------------------------------------------- services */
+  .services { background: var(--haze); padding-block: clamp(80px, 11vw, 150px); position: relative; }
+  .services h2, .contact h2 { font-stretch: 125%; font-weight: 800; letter-spacing: -0.03em; line-height: 0.98; }
+  .services h2 { font-size: clamp(2.2rem, 4.6vw, 4.2rem); }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 4vw, 56px); margin-top: clamp(36px, 5vw, 64px); }
+  .cols h3 { font-stretch: 112%; font-weight: 700; font-size: 1.4rem; letter-spacing: -0.015em; }
+  .cols p { margin-top: 10px; color: var(--slate); }
+  .cols > div { border-top: 2px solid var(--ink); padding-top: 18px; }
+  .how { margin-top: clamp(56px, 8vw, 96px); }
+  .how h2 { font-size: clamp(1.6rem, 2.8vw, 2.4rem); }
+  .how .cols > div { border-top-width: 1px; border-color: rgba(18,24,38,0.2); }
+  .how .cols h3 { font-size: 1.1rem; }
+
+  /* -------------------------------------------------------------- contact */
+  .contact { background: var(--ink); color: var(--haze); padding-block: clamp(90px, 13vw, 180px) 40px; position: relative; }
+  .contact h2 { font-size: clamp(2.8rem, 8vw, 7.6rem); max-width: 12ch; }
+  .contact p { margin-top: 26px; max-width: 30rem; color: rgba(238,241,245,0.7); font-size: 1.12rem; }
+  .mail {
+    display: inline-block; margin-top: 40px; font-stretch: 115%; font-weight: 700;
+    font-size: clamp(1.4rem, 3.6vw, 2.6rem); letter-spacing: -0.02em; text-decoration: none;
+    background: linear-gradient(var(--haze), var(--haze)) 0 100% / 100% 2px no-repeat; padding-bottom: 4px; transition: color 0.2s, background-size 0.35s;
   }
-  .btn:hover { transform: translateY(-2px); background: #000; }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .btn.ghost:hover { background: var(--bg-2); }
-  .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  .mail:hover { color: #8FA0FF; background-size: 0 2px; }
+  footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: clamp(80px, 12vw, 160px); padding-top: 22px; border-top: 1px solid rgba(238,241,245,0.15); font-size: 0.9rem; color: rgba(238,241,245,0.55); }
 
-  /* strip of screenshots under the hero */
-  .strip { overflow: hidden; padding-block: 8px 0; mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-  .strip-track { display: flex; gap: 18px; width: max-content; animation: slide 60s linear infinite; }
-  .strip:hover .strip-track { animation-play-state: paused; }
-  .strip img { width: clamp(240px, 30vw, 400px); aspect-ratio: 16/10; object-fit: cover; object-position: top; border-radius: 10px; border: 1px solid var(--line); }
-  @keyframes slide { to { transform: translateX(calc(-50% - 9px)); } }
-  @media (prefers-reduced-motion: reduce) { .strip-track { animation: none; } }
-
-  /* --------------------------------------------------------------- work */
-  section { padding-block: clamp(72px, 10vw, 140px); }
-  .sec-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; border-bottom: 1px solid var(--ink); padding-bottom: 18px; margin-bottom: clamp(40px, 6vw, 72px); }
-  .sec-head h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.4rem, 5.5vw, 4.4rem); line-height: 1; letter-spacing: -0.02em; }
-  .sec-head .mono { color: var(--ink-soft); }
-
-  .project { display: grid; grid-template-columns: 5fr 7fr; gap: clamp(24px, 5vw, 72px); align-items: center; padding-block: clamp(36px, 5vw, 64px); border-bottom: 1px solid var(--line); }
-  .project:last-child { border-bottom: 0; }
-  .project.flip .p-text { order: 2; }
-  .p-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--ink-soft); }
-  .num { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-soft); }
-  .tag { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 99px; border: 1px solid var(--line); }
-  .tag.live { color: var(--live); border-color: rgba(47,143,78,0.35); background: rgba(47,143,78,0.07); }
-  .tag.live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; vertical-align: 1px; }
-  .tag.wip { color: #A0621A; border-color: rgba(160,98,26,0.35); background: rgba(160,98,26,0.07); }
-  .tag.wip::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid currentColor; margin-right: 6px; vertical-align: 0; }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px; }
-  .project h3 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.1rem, 4vw, 3.3rem); line-height: 1; letter-spacing: -0.015em; margin-top: 18px; }
-  .project .where { color: var(--ink-soft); margin-top: 8px; font-size: 0.95rem; }
-  .project .desc { margin-top: 20px; max-width: 32rem; }
-  .project ul.built { list-style: none; margin-top: 20px; display: grid; gap: 6px; }
-  .project ul.built li { font-size: 0.95rem; padding-left: 20px; position: relative; }
-  .project ul.built li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 10px; height: 1px; background: var(--dot); }
-  .visit { display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 2px; transition: gap 0.25s; }
-  .visit:hover { gap: 14px; }
-
-  /* browser frame */
-  .shot { position: relative; }
-  .frame { border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid var(--line); box-shadow: 0 30px 60px -30px rgba(22,21,15,0.35), 0 10px 20px -12px rgba(22,21,15,0.15); transition: transform 0.6s cubic-bezier(0.16,1,0.3,1); }
-  .frame-bar { display: flex; align-items: center; gap: 6px; height: 30px; padding-inline: 12px; background: #F7F5F0; border-bottom: 1px solid var(--line); }
-  .frame-bar i { width: 9px; height: 9px; border-radius: 50%; background: #DDD8CC; }
-  .frame-bar span { margin-left: 10px; font-family: var(--mono); font-size: 0.66rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .frame img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; }
-  a.shot:hover .frame { transform: translateY(-6px); }
-  .phone { position: absolute; right: -14px; bottom: -34px; width: 23%; min-width: 100px; border-radius: 22px; overflow: hidden; border: 5px solid var(--ink); box-shadow: 0 24px 40px -18px rgba(22,21,15,0.5); background: var(--ink); }
-  .phone img { width: 100%; aspect-ratio: 390/844; object-fit: cover; object-position: top; }
-
-  /* ---------------------------------------------------------- services */
-  .services { background: var(--ink); color: var(--bg); border-radius: clamp(18px, 3vw, 32px); margin-inline: clamp(8px, 1.5vw, 20px); }
-  .services .sec-head { border-color: rgba(244,241,234,0.4); }
-  .services .sec-head .mono { color: rgba(244,241,234,0.6); }
-  .svc { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 3vw, 40px); }
-  .svc div { border-top: 1px solid rgba(244,241,234,0.2); padding-top: 22px; }
-  .svc h3 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.8rem, 2.6vw, 2.3rem); line-height: 1.05; }
-  .svc p { margin-top: 12px; color: rgba(244,241,234,0.72); font-size: 0.98rem; }
-  .svc .mono { color: var(--dot); display: block; margin-bottom: 14px; }
-  .how { margin-top: clamp(48px, 7vw, 88px); display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 3vw, 40px); }
-  .how p { color: rgba(244,241,234,0.72); font-size: 0.98rem; }
-  .how strong { display: block; color: var(--bg); font-weight: 600; margin-bottom: 6px; }
-
-  /* ------------------------------------------------------------ contact */
-  .contact { text-align: center; }
-  .contact h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(3rem, 9vw, 8rem); line-height: 0.95; letter-spacing: -0.025em; }
-  .contact h2 em { color: var(--dot); }
-  .contact p { color: var(--ink-soft); margin: 24px auto 36px; max-width: 30rem; font-size: 1.1rem; }
-  .contact .btns { justify-content: center; }
-  .mail { font-family: var(--serif); font-size: clamp(1.5rem, 3.5vw, 2.4rem); text-decoration: none; border-bottom: 1px solid var(--line); transition: border-color 0.2s; }
-  .mail:hover { border-color: var(--dot); }
-
-  footer { border-top: 1px solid var(--line); }
-  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-block: 26px; color: var(--ink-soft); }
-
-  /* ------------------------------------------------------------- mobile */
-  @media (max-width: 860px) {
-    .project, .project.flip { grid-template-columns: 1fr; }
-    .project.flip .p-text { order: 0; }
-    .p-text { order: 2; }
-    .shot { order: 1; }
-    .phone { right: -4px; bottom: -22px; width: 26%; border-width: 4px; border-radius: 16px; }
-    .svc, .how { grid-template-columns: 1fr; }
+  /* --------------------------------------------------------------- mobile */
+  @media (max-width: 860px), (max-aspect-ratio: 1/1) {
+    .hero { align-items: flex-end; padding-bottom: 40px; position: relative; }
+    .hero::before { content: ""; position: absolute; inset: 40% 0 0; background: linear-gradient(rgba(220,225,232,0), var(--studio) 38%); pointer-events: none; }
+    .hero .wrap { position: relative; }
+    .hint { margin-top: 26px; }
+    .proj { align-items: flex-end; padding-block: 0 24px; }
+    .info { max-width: none; background: rgba(238,241,245,0.9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-radius: 20px; padding: 22px 20px 24px; }
+    .work-intro { align-items: flex-end; padding-bottom: 32px; }
+    .cols { grid-template-columns: 1fr; }
     nav ul li.hide-m { display: none; }
   }
-  @media (max-width: 480px) {
-    .hero-foot .btns { width: 100%; }
-    .hero-foot .btn { flex: 1; justify-content: center; }
+  @media (max-width: 860px) {
+    .lede { font-size: 1.05rem; }
+    .proj h3 { margin-top: 14px; }
+    .built { display: none; }
+    .desc { margin-top: 12px; font-size: 0.98rem; }
   }
+  /* wide screens: a soft wash of studio grey behind the text column, so slabs turning past never fight the copy */
+  @media (min-width: 861px) and (min-aspect-ratio: 1/1) {
+    .hero, .proj { position: relative; }
+    .hero::before, .proj::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(90deg, var(--studio) 0, rgba(220,225,232,0.92) 30%, rgba(220,225,232,0) 46%);
+    }
+    .hero .wrap, .proj .wrap { position: relative; }
+    .no-gl .hero::before, .no-gl .proj::before { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .visit, .mail, .btn { transition: none; } }
 </style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
 </head>
 <body>
-<script>document.documentElement.classList.add('js'); document.body.classList.add('js');</script>
+<script>document.documentElement.classList.remove('no-js');</script>
 
-<nav id="nav">
+<div id="loader" aria-hidden="true"><p>Zach</p><div class="bar"><i></i></div></div>
+<canvas id="gl" aria-label="The six projects on a rotating turntable" role="img"></canvas>
+<div id="tip" aria-hidden="true"></div>
+
+<nav>
   <div class="wrap">
-    <a href="#top" class="logo" aria-label="zach. home">zach<span>.</span></a>
+    <a href="#top" class="brand">Zach</a>
     <ul>
       <li class="hide-m"><a href="#work">Work</a></li>
       <li class="hide-m"><a href="#services">Services</a></li>
-      <li><a href="#contact" class="cta">Get in touch</a></li>
+      <li><a href="#contact" class="pill">Start a project</a></li>
     </ul>
   </div>
 </nav>
 
-<header class="hero wrap" id="top">
-  <div class="mono rv"><span class="pulse"></span> Bedford, UK &middot; taking new projects</div>
-  <h1 class="rv">Websites that <em>actually</em> do the work.</h1>
-  <div class="hero-foot">
-    <p class="rv">I'm Zach. I build websites, online ordering and apps for real businesses: a grill in Florida taking orders tonight, a filmmaker's home on the web, a cheese shop and an olive oil estate, <strong>and a cooking app on iPhone and Android.</strong></p>
-    <div class="btns rv">
-      <a href="#work" class="btn">See the work &darr;</a>
-      <a href="#contact" class="btn ghost">Start a project</a>
+<main>
+  <header class="hero pass" id="top">
+    <div class="wrap">
+      <div class="hero-copy">
+        <h1>I build websites that do the work.</h1>
+        <p class="lede">Websites, online ordering and apps for real businesses, from a grill in Florida to a cheese shop down the road. <strong>I'm Zach, based in Bedford.</strong></p>
+        <div class="btns">
+          <a href="#work" class="btn solid">See the work</a>
+          <a href="#contact" class="btn line">Start a project</a>
+        </div>
+        <p class="hint">Drag the table to spin it, or scroll to go through each project.</p>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<div class="strip" aria-hidden="true">
-  <div class="strip-track">
-    <img src="img/lilys.jpg" alt=""><img src="img/elio.jpg" alt=""><img src="img/andalus.jpg" alt=""><img src="img/f2f.jpg" alt=""><img src="img/cheese.jpg" alt=""><img src="img/nitoria.jpg" alt="">
-    <img src="img/lilys.jpg" alt=""><img src="img/elio.jpg" alt=""><img src="img/andalus.jpg" alt=""><img src="img/f2f.jpg" alt=""><img src="img/cheese.jpg" alt=""><img src="img/nitoria.jpg" alt="">
-  </div>
-</div>
-
-<section id="work">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <h2>Selected work</h2>
-      <div class="legend"><span class="tag live">Live &middot; finished</span><span class="tag wip">In progress</span></div>
+  <section class="work-intro pass" id="work">
+    <div class="wrap">
+      <h2>Six projects, all for real businesses.</h2>
+      <p>Two are live and finished. Four are being built right now.</p>
+      <div class="legend"><span class="status live">Live and finished</span><span class="status wip">In progress</span></div>
     </div>
+  </section>
 
-    <article class="project">
-      <div class="p-text rv">
-        <div class="p-meta"><span class="num">01</span><span class="tag live">Live &middot; finished</span><span class="tag">Restaurant</span></div>
+  <div id="projects">
+    <section class="proj pass" data-name="Lily's Mediterranean" data-img="img/lilys.jpg" data-url="https://lilysmediterraneanfresh.com/">
+      <div class="wrap"><div class="info">
+        <span class="status live">Live and finished</span>
         <h3>Lily's Mediterranean Fresh Grill</h3>
-        <p class="where">Indialantic, Florida</p>
+        <p class="where">Restaurant in Indialantic, Florida</p>
         <p class="desc">A family-run Lebanese grill on the Space Coast. They needed a site that looks as good as the food, plus a way to take orders online without handing a cut to the delivery apps.</p>
         <ul class="built">
-          <li>Website with the full priced menu</li>
+          <li>Website with the full menu and prices</li>
           <li>Online ordering with card payments</li>
           <li>Kitchen screen that shows new orders the moment they land</li>
         </ul>
-        <a class="visit" href="https://zachachacker.github.io/lilys-mediterranean/" target="_blank" rel="noopener">Visit the site &rarr;</a>
-      </div>
-      <a class="shot rv" href="https://zachachacker.github.io/lilys-mediterranean/" target="_blank" rel="noopener" aria-label="Open Lily's Mediterranean site">
-        <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>lilys-mediterranean</span></div><img src="img/lilys.jpg" alt="Lily's Mediterranean homepage: flame-grilled skewers behind the headline Fresh Mediterranean, on the Indialantic shore" loading="lazy"></div>
-        <div class="phone"><img src="img/lilys-m.jpg" alt="Lily's site on a phone" loading="lazy"></div>
-      </a>
-    </article>
+        <a class="visit" href="https://lilysmediterraneanfresh.com/" target="_blank" rel="noopener">Visit lilysmediterraneanfresh.com</a>
+        <img class="fallback" src="img/lilys.jpg" alt="Lily's Mediterranean homepage" loading="lazy">
+      </div></div>
+    </section>
 
-    <article class="project flip">
-      <div class="p-text rv">
-        <div class="p-meta"><span class="num">02</span><span class="tag live">Live &middot; finished</span><span class="tag">Personal brand</span></div>
+    <section class="proj pass" data-name="Elio Lepore" data-img="img/elio.jpg" data-url="https://eliolepore.com">
+      <div class="wrap"><div class="info">
+        <span class="status live">Live and finished</span>
         <h3>Elio Lepore</h3>
-        <p class="where">EL Productions &middot; UK</p>
-        <p class="desc">A home for a filmmaker and entrepreneur running a media company and a property venture. The site is built around his own footage, so the first thing you see is his work, not a stock photo.</p>
+        <p class="where">Personal brand for EL Productions, UK</p>
+        <p class="desc">A home for a filmmaker and entrepreneur running a media company and a property venture. The site is built around his own footage, so the first thing you see is his work.</p>
         <ul class="built">
           <li>Full-screen film hero, cut from his own clips</li>
           <li>One hub for every venture he runs</li>
           <li>Domain, hosting and ongoing changes looked after</li>
         </ul>
-        <a class="visit" href="https://eliolepore.com" target="_blank" rel="noopener">eliolepore.com &rarr;</a>
-      </div>
-      <a class="shot rv" href="https://eliolepore.com" target="_blank" rel="noopener" aria-label="Open eliolepore.com">
-        <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>eliolepore.com</span></div><img src="img/elio.jpg" alt="Elio Lepore homepage: three film stills behind his name and four venture cards" loading="lazy"></div>
-      </a>
-    </article>
+        <a class="visit" href="https://eliolepore.com" target="_blank" rel="noopener">Visit eliolepore.com</a>
+        <img class="fallback" src="img/elio.jpg" alt="Elio Lepore homepage" loading="lazy">
+      </div></div>
+    </section>
 
-    <article class="project">
-      <div class="p-text rv">
-        <div class="p-meta"><span class="num">03</span><span class="tag wip">In progress</span><span class="tag">iOS &middot; Android &middot; Web</span></div>
+    <section class="proj pass" data-name="ChefSage" data-img="img/f2f.jpg" data-url="https://frame2fork.com">
+      <div class="wrap"><div class="info">
+        <span class="status wip">In progress</span>
         <h3>ChefSage</h3>
-        <p class="where">Frame2Fork &middot; co-founder</p>
-        <p class="desc">Paste any recipe video and ChefSage turns it into clear steps, then talks you through them while you cook. I co-founded it and am building the app across iPhone, Android and the web. The web version is up now in beta; the phone apps are next.</p>
+        <p class="where">Cooking app for Frame2Fork, which I co-founded</p>
+        <p class="desc">Paste any recipe video and ChefSage turns it into clear steps, then talks you through them while you cook. The web version is up in beta; the iPhone and Android apps are next.</p>
         <ul class="built">
-          <li>Native apps for iPhone and Android</li>
+          <li>Apps for iPhone, Android and the web</li>
           <li>Video-to-recipe conversion</li>
           <li>Hands-free voice guide while you cook</li>
         </ul>
-        <a class="visit" href="https://frame2fork.com" target="_blank" rel="noopener">frame2fork.com &rarr;</a>
-      </div>
-      <a class="shot rv" href="https://frame2fork.com" target="_blank" rel="noopener" aria-label="Open ChefSage">
-        <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>frame2fork.com</span></div><img src="img/f2f.jpg" alt="ChefSage app: a grid of recipe videos with calorie counts and a paste-a-link search bar" loading="lazy"></div>
-      </a>
-    </article>
+        <a class="visit" href="https://frame2fork.com" target="_blank" rel="noopener">Try the beta</a>
+        <img class="fallback" src="img/f2f.jpg" alt="ChefSage recipe app" loading="lazy">
+      </div></div>
+    </section>
 
-    <article class="project flip">
-      <div class="p-text rv">
-        <div class="p-meta"><span class="num">04</span><span class="tag wip">In progress</span><span class="tag">Investor site</span></div>
+    <section class="proj pass" data-name="Nitoria Global" data-img="img/nitoria.jpg" data-url="https://zachachacker.github.io/demos/nitoria/">
+      <div class="wrap"><div class="info">
+        <span class="status wip">In progress</span>
         <h3>Nitoria Global</h3>
-        <p class="where">Cosmetics &middot; England</p>
-        <p class="desc">A one-page site for a new cosmetics company opening a private round. Quiet, expensive-looking and short: who they are, the opportunity, and a direct line for investor enquiries. Price agreed; launching on their own domain once the final content is in.</p>
+        <p class="where">Investor site for a cosmetics company, England</p>
+        <p class="desc">A one-page site for a new cosmetics company opening a private round. Quiet and short: who they are, the opportunity, and a direct line for investors. Launching on their own domain once the final content is in.</p>
         <ul class="built">
           <li>One-page investor site</li>
           <li>Investor enquiry form</li>
           <li>Feedback turned around the same day</li>
         </ul>
-        <a class="visit" href="https://zachachacker.github.io/demos/nitoria/" target="_blank" rel="noopener">See the design &rarr;</a>
-      </div>
-      <a class="shot rv" href="https://zachachacker.github.io/demos/nitoria/" target="_blank" rel="noopener" aria-label="Open Nitoria design">
-        <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>nitoria</span></div><img src="img/nitoria.jpg" alt="Nitoria Global page: large serif headline The next name in cosmetics on a cream background" loading="lazy"></div>
-      </a>
-    </article>
+        <a class="visit" href="https://zachachacker.github.io/demos/nitoria/" target="_blank" rel="noopener">See the design</a>
+        <img class="fallback" src="img/nitoria.jpg" alt="Nitoria Global page" loading="lazy">
+      </div></div>
+    </section>
 
-    <article class="project">
-      <div class="p-text rv">
-        <div class="p-meta"><span class="num">05</span><span class="tag wip">In progress</span><span class="tag">Deli &middot; Caf&eacute;</span></div>
+    <section class="proj pass" data-name="The Bedford Cheese Company" data-img="img/cheese.jpg" data-url="https://zachachacker.github.io/demos/bedford-cheese/">
+      <div class="wrap"><div class="info">
+        <span class="status wip">In progress</span>
         <h3>The Bedford Cheese Company</h3>
-        <p class="where">Cardington, Bedford</p>
-        <p class="desc">A new site for a family-run cheese deli, farm shop and caf&eacute; in a converted barn. Warm, market-hall feel, led by photos of the actual shop and the cheese counter.</p>
+        <p class="where">Cheese deli and caf&eacute; in Cardington, Bedford</p>
+        <p class="desc">A new site for a family-run cheese deli, farm shop and caf&eacute; in a converted barn. A warm market-hall feel, led by photos of the actual shop and the cheese counter.</p>
         <ul class="built">
           <li>Full redesign with real photography</li>
           <li>Cheese counter, caf&eacute; menu and events</li>
-          <li>Live &ldquo;open now&rdquo; opening hours</li>
+          <li>Live opening hours that say if they're open now</li>
         </ul>
-        <a class="visit" href="https://zachachacker.github.io/demos/bedford-cheese/" target="_blank" rel="noopener">See the design &rarr;</a>
-      </div>
-      <a class="shot rv" href="https://zachachacker.github.io/demos/bedford-cheese/" target="_blank" rel="noopener" aria-label="Open Bedford Cheese design">
-        <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>bedford-cheese</span></div><img src="img/cheese.jpg" alt="Bedford Cheese Company redesign: the barn caf&eacute; interior behind the headline The home of proper cheese" loading="lazy"></div>
-      </a>
-    </article>
+        <a class="visit" href="https://zachachacker.github.io/demos/bedford-cheese/" target="_blank" rel="noopener">See the design</a>
+        <img class="fallback" src="img/cheese.jpg" alt="Bedford Cheese Company redesign" loading="lazy">
+      </div></div>
+    </section>
 
-    <article class="project flip">
-      <div class="p-text rv">
-        <div class="p-meta"><span class="num">06</span><span class="tag wip">In progress</span><span class="tag">Online shop</span></div>
+    <section class="proj pass" data-name="Andalus Olive Oil" data-img="img/andalus.jpg" data-url="https://zachachacker.github.io/demos/andalus-olive-oil/">
+      <div class="wrap"><div class="info">
+        <span class="status wip">In progress</span>
         <h3>Andalus Olive Oil</h3>
-        <p class="where">Ja&eacute;n, Spain &middot; sold in the UK</p>
-        <p class="desc">Premium single-estate olive oil from Ja&eacute;n. The new site sets it at golden hour on the estate, dark and gold, so the bottle feels as premium as the oil inside it.</p>
+        <p class="where">Olive oil from Ja&eacute;n, Spain, sold in the UK</p>
+        <p class="desc">Premium single-estate olive oil. The new shop sets it at golden hour on the estate, dark and gold, so the bottle feels as premium as the oil inside it.</p>
         <ul class="built">
-          <li>Full redesign of the shop</li>
+          <li>Full redesign of the online shop</li>
           <li>The oils, the estate and the harvest, told properly</li>
           <li>Built to look right on a phone first</li>
         </ul>
-        <a class="visit" href="https://zachachacker.github.io/demos/andalus-olive-oil/" target="_blank" rel="noopener">See the design &rarr;</a>
-      </div>
-      <a class="shot rv" href="https://zachachacker.github.io/demos/andalus-olive-oil/" target="_blank" rel="noopener" aria-label="Open Andalus design">
-        <div class="frame"><div class="frame-bar"><i></i><i></i><i></i><span>andalus</span></div><img src="img/andalus.jpg" alt="Andalus olive oil redesign: a bottle in front of sunlit olive branches" loading="lazy"></div>
-      </a>
-    </article>
+        <a class="visit" href="https://zachachacker.github.io/demos/andalus-olive-oil/" target="_blank" rel="noopener">See the design</a>
+        <img class="fallback" src="img/andalus.jpg" alt="Andalus olive oil redesign" loading="lazy">
+      </div></div>
+    </section>
   </div>
-</section>
 
-<section class="services" id="services">
-  <div class="wrap">
-    <div class="sec-head rv">
+  <section class="services" id="services">
+    <div class="wrap">
       <h2>What I build</h2>
-      <span class="mono">Fixed price, agreed up front</span>
+      <div class="cols">
+        <div><h3>Websites</h3><p>Designed from scratch for your business, with your real photos and your real menu or prices. Fast on phones and easy to find on Google.</p></div>
+        <div><h3>Online ordering</h3><p>Customers order and pay on your own site, orders show up on a screen in your kitchen, and you keep the margin the delivery apps would take.</p></div>
+        <div><h3>Apps</h3><p>iPhone, Android and web apps, from the first idea to the App Store.</p></div>
+      </div>
+      <div class="how">
+        <h2>How it works</h2>
+        <div class="cols">
+          <div><h3>You see it before you pay</h3><p>I build a working version for your business first, so you're judging the real thing, not a pitch.</p></div>
+          <div><h3>No homework for you</h3><p>Domain, hosting, setup and changes are handled. You just tell me what you want.</p></div>
+          <div><h3>It stays yours</h3><p>Your site, your domain, your customers. Nothing is locked to me.</p></div>
+        </div>
+      </div>
     </div>
-    <div class="svc">
-      <div class="rv"><span class="mono">01</span><h3>Websites</h3><p>Designed from scratch for your business, with your real photos and your real menu or prices. Fast on phones, easy to find on Google.</p></div>
-      <div class="rv"><span class="mono">02</span><h3>Online ordering</h3><p>Customers order and pay on your own site, orders show up on a screen in your kitchen, and you keep the margin the delivery apps would take.</p></div>
-      <div class="rv"><span class="mono">03</span><h3>Apps</h3><p>iPhone, Android and web apps, from first idea to the App Store.</p></div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <h2>Got a business? Let's build it.</h2>
+      <p>Tell me what you do and what's not working online. I'll come back with an idea, and usually a working demo.</p>
+      <a class="mail" href="mailto:zachary@mr10x.com">zachary@mr10x.com</a>
+      <footer><span>Zach, Bedford UK</span><span>&copy; 2026</span></footer>
     </div>
-    <div class="how">
-      <p class="rv"><strong>You see it before you pay.</strong>I build a working version for your business first, so you're judging the real thing, not a pitch.</p>
-      <p class="rv"><strong>No homework for you.</strong>Domain, hosting, setup and changes are handled for you. You just tell me what you want.</p>
-      <p class="rv"><strong>It stays yours.</strong>Your site, your domain, your customers. Nothing is locked to me.</p>
-    </div>
-  </div>
-</section>
+  </section>
+</main>
 
-<section class="contact" id="contact">
-  <div class="wrap">
-    <h2 class="rv">Got a business?<br><em>Let's build it.</em></h2>
-    <p class="rv">Tell me what you do and what's not working online. I'll come back with an idea, and usually a working demo.</p>
-    <div class="rv"><a class="mail" href="mailto:zachary@mr10x.com">zachary@mr10x.com</a></div>
-  </div>
-</section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-<footer>
-  <div class="wrap mono">
-    <span>zach. &middot; Bedford, UK</span>
-    <span>&copy; 2026</span>
-  </div>
-</footer>
+const root = document.documentElement;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sections = [...document.querySelectorAll('.proj')];
+const PROJECTS = sections.map(s => ({ name: s.dataset.name, img: s.dataset.img, url: s.dataset.url }));
+const STUDIO = '#DCE1E8';
 
-<script>
-  const nav = document.getElementById('nav');
-  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true });
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 });
-  document.querySelectorAll('.rv').forEach(el => io.observe(el));
-  setTimeout(() => document.querySelectorAll('.rv').forEach(el => el.classList.add('in')), 3000);
+gsap.registerPlugin(ScrollTrigger);
+
+// Smooth scroll, driven by the GSAP ticker so the 3D and the page move on the same frame.
+let lenis = null;
+if (!reduce && window.Lenis) {
+  lenis = new Lenis({ lerp: 0.09 });
+  lenis.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+}
+document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+  const target = document.querySelector(a.getAttribute('href'));
+  if (!target) return;
+  e.preventDefault();
+  if (lenis) lenis.scrollTo(target, { duration: 1.6 });
+  else target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+}));
+
+// Split the headline into words so the intro can lift them in.
+const h1 = document.querySelector('.hero h1');
+h1.setAttribute('aria-label', h1.textContent.trim());
+h1.innerHTML = h1.textContent.trim().split(/\s+/).map(w => `<span class="w" aria-hidden="true"><span>${w}</span></span>`).join(' ');
+
+// Scroll state the scene reads every frame.
+const state = { hero: 0, f: 0, fade: 1 };
+ScrollTrigger.create({ trigger: '#top', start: 'top top', end: 'bottom top', onUpdate: s => { state.hero = s.progress; } });
+ScrollTrigger.create({ trigger: '#projects', start: 'top top', end: 'bottom bottom', onUpdate: s => { state.f = s.progress * (PROJECTS.length - 1); } });
+ScrollTrigger.create({ trigger: '#services', start: 'top bottom', end: 'top 30%', onUpdate: s => { state.fade = 1 - s.progress; } });
+
+const nav = document.querySelector('nav');
+ScrollTrigger.create({ start: 40, end: 'max', toggleClass: { targets: nav, className: 'scrolled' } });
+ScrollTrigger.create({ trigger: '#contact', start: 'top 72px', end: 'max', toggleClass: { targets: nav, className: 'on-ink' } });
+
+const loader = document.getElementById('loader');
+const loaderBar = loader.querySelector('i');
+
+function intro(scene) {
+  const tl = gsap.timeline();
+  tl.to(loader, { autoAlpha: 0, duration: 0.5, ease: 'power2.out' });
+  if (reduce) return;
+  tl.from('.hero h1 .w > span', { yPercent: 110, duration: 1.1, ease: 'expo.out', stagger: 0.06 }, 0.15);
+  tl.from('.lede, .hero .btns, .hint', { autoAlpha: 0, y: 14, duration: 0.8, ease: 'power3.out', stagger: 0.08 }, 0.6);
+  if (scene) {
+    scene.slabs.forEach((s, i) => tl.from(s.drop, { y: 6, duration: 1.5, ease: 'bounce.out' }, 0.2 + i * 0.09));
+    tl.from(scene.spin, { v: -2.4, duration: 2.6, ease: 'expo.out' }, 0.1);
+  }
+}
+
+let scene = null;
+try { scene = initScene(); } catch (err) { console.warn('3D unavailable, showing images instead', err); }
+if (!scene) {
+  root.classList.add('no-gl');
+  intro(null);
+} else {
+  scene.ready.then(() => intro(scene));
+}
+
+function roundedPlane(w, h, r) {
+  const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  const g = new THREE.ShapeGeometry(s, 6);
+  const pos = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getY(i) / h + 0.5);
+  return g;
+}
+
+function initScene() {
+  const canvas = document.getElementById('gl');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(STUDIO);
+
+  const scene3 = new THREE.Scene();
+  scene3.fog = new THREE.Fog(STUDIO, 8, 18);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
+
+  scene3.add(new THREE.HemisphereLight(0xffffff, 0xb4bdcb, 1.7));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+  sun.position.set(3, 10, 6);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 30 });
+  sun.shadow.bias = -0.0004;
+  scene3.add(sun);
+
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(90, 90), new THREE.ShadowMaterial({ opacity: 0.14 }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -1.8;
+  floor.receiveShadow = true;
+  scene3.add(floor);
+
+  // The turntable: one slab per project, facing outwards around a ring.
+  const W = 3, H = 1.875, R = 4.1, N = PROJECTS.length, STEP = Math.PI * 2 / N;
+  const wrap = new THREE.Group();
+  const ring = new THREE.Group();
+  wrap.add(ring);
+  scene3.add(wrap);
+
+  const bodyGeo = new RoundedBoxGeometry(W + 0.14, H + 0.14, 0.12, 4, 0.07);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf7f8fa, roughness: 0.42 });
+  const screenGeo = roundedPlane(W, H, 0.06);
+  const manager = new THREE.LoadingManager();
+  const texLoader = new THREE.TextureLoader(manager);
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  const screens = [];
+
+  const slabs = PROJECTS.map((p, i) => {
+    const a = i * STEP;
+    const pivot = new THREE.Group();
+    pivot.position.set(Math.sin(a) * R, 0, Math.cos(a) * R);
+    pivot.rotation.y = a;
+    const slab = new THREE.Group();
+    pivot.add(slab);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.castShadow = true;
+    slab.add(body);
+    const tex = texLoader.load(p.img);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = maxAniso;
+    const screen = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: tex }));
+    screen.position.z = 0.062;
+    screen.userData.i = i;
+    slab.add(screen);
+    screens.push(screen);
+    ring.add(pivot);
+    return { slab, screen, a, drop: { y: 0 }, hover: 0 };
+  });
+
+  const ready = new Promise(resolve => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; loaderBar.style.width = '100%'; setTimeout(resolve, 250); } };
+    manager.onProgress = (_, loaded, total) => { loaderBar.style.width = `${(loaded / total) * 100}%`; };
+    manager.onLoad = finish;
+    setTimeout(finish, 6000);
+  });
+
+  // Layout: keep the front slab a set share of the screen, to the right on wide screens, up top on tall ones.
+  const layout = { xHero: 0, xWork: 0, y: 0 };
+  function resize() {
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    const wide = w > 860 && w / h > 1;
+    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    // wide: front slab ~40% of the width. narrow: fit both the width and ~a third of the height.
+    const d = wide
+      ? Math.max((W / 0.4) / 2 / (tan * camera.aspect), 6)
+      : Math.max((W / 0.84) / 2 / (tan * camera.aspect), (H / 0.34) / (2 * tan));
+    const visH = 2 * d * tan, visW = visH * camera.aspect;
+    layout.xHero = wide ? visW * 0.27 : 0;
+    layout.xWork = wide ? visW * 0.2 : 0;
+    layout.y = wide ? -0.05 : visH * 0.31;
+    camera.position.set(0, 0.85, R + d);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    scene3.fog.near = d + 0.6;
+    scene3.fog.far = d + 2 * R + 1.2;
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  // Pointer: tilt the scene, spin the table by dragging, hover and click a screen to open it.
+  const pointer = { x: 0, y: 0, tx: 0, ty: 0, down: false, moved: 0, lastX: 0 };
+  const spin = { v: 0 };
+  let drag = 0, dragVel = 0, anchor = 0, hovered = -1;
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  const tip = document.getElementById('tip');
+
+  function pick(e) {
+    ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(screens, false)[0];
+    if (!hit) return -1;
+    const i = hit.object.userData.i;
+    return Math.cos(slabs[i].a + ring.rotation.y) > 0.3 ? i : -1;
+  }
+  addEventListener('pointermove', e => {
+    pointer.tx = (e.clientX / innerWidth) * 2 - 1;
+    pointer.ty = (e.clientY / innerHeight) * 2 - 1;
+    if (pointer.down) {
+      const dx = e.clientX - pointer.lastX;
+      pointer.lastX = e.clientX;
+      pointer.moved += Math.abs(dx);
+      drag += dx * 0.006;
+      dragVel = dx * 0.006;
+    }
+    if (e.target !== canvas || e.pointerType === 'touch') { hovered = -1; tip.classList.remove('on'); canvas.className = ''; return; }
+    hovered = pointer.down ? -1 : pick(e);
+    if (hovered >= 0) {
+      tip.textContent = `Open ${PROJECTS[hovered].name}`;
+      tip.style.left = `${e.clientX}px`; tip.style.top = `${e.clientY}px`;
+      tip.classList.add('on');
+    } else tip.classList.remove('on');
+    canvas.className = pointer.down ? 'grabbing' : hovered >= 0 ? 'point' : state.hero < 0.5 ? 'grab' : '';
+  });
+  canvas.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') return;
+    pointer.down = true; pointer.moved = 0; pointer.lastX = e.clientX;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointerup', e => {
+    pointer.down = false;
+    if (pointer.moved < 6) {
+      const i = pick(e);
+      if (i >= 0) window.open(PROJECTS[i].url, '_blank', 'noopener');
+    }
+  });
+
+  const clock = new THREE.Clock();
+  const smooth = (k, dt) => 1 - Math.exp(-k * dt);
+  gsap.ticker.add(() => {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    const t = clock.elapsedTime;
+    if (state.fade <= 0.002) { canvas.style.visibility = 'hidden'; return; }
+    canvas.style.visibility = 'visible';
+    canvas.style.opacity = state.fade;
+
+    const w = gsap.parseEase('power2.inOut')(state.hero);
+    const atTop = state.hero < 0.001;
+    if (!pointer.down) {
+      if (atTop && !reduce) drag += dt * 0.16;      // idle turntable spin, only while at the top
+      drag += dragVel; dragVel *= 0.94;               // drag inertia
+    }
+    if (atTop) anchor = Math.round(drag / (Math.PI * 2)) * Math.PI * 2;
+    const work = -state.f * STEP + anchor;
+    const target = drag + (work - drag) * w + spin.v;
+    ring.rotation.y += (target - ring.rotation.y) * smooth(reduce ? 14 : 5, dt);
+
+    pointer.x += (pointer.tx - pointer.x) * smooth(3, dt);
+    pointer.y += (pointer.ty - pointer.y) * smooth(3, dt);
+    wrap.rotation.x = 0.05 + pointer.y * 0.05;
+    wrap.rotation.z = -pointer.x * 0.025;
+    wrap.position.set(layout.xHero + (layout.xWork - layout.xHero) * w + pointer.x * 0.15, layout.y - pointer.y * 0.08, 0);
+
+    slabs.forEach((s, i) => {
+      const facing = Math.cos(s.a + ring.rotation.y);
+      const focus = Math.pow(Math.max(0, facing), 8) * w;
+      // slabs turned away sink towards the middle of the table, so the front one stands alone
+      const sink = Math.pow(1 - Math.max(0, facing), 1.4) * (1.2 + 1.2 * w);
+      s.hover += ((hovered === i ? 1 : 0) - s.hover) * smooth(10, dt);
+      const bob = reduce ? 0 : Math.sin(t * 0.9 + i * 1.3) * 0.07;
+      s.slab.position.set(0, s.drop.y + bob, focus * 0.3 - sink);
+      s.slab.rotation.x = reduce ? 0 : Math.sin(t * 0.6 + i) * 0.03;
+      s.slab.scale.setScalar((1 - 0.12 * w + 0.12 * focus) * (1 + 0.04 * s.hover));
+      s.screen.material.color.setScalar(1 - 0.35 * w + 0.35 * focus);
+    });
+
+    renderer.render(scene3, camera);
+  });
+
+  return { slabs, spin, ready };
+}
 </script>
 </body>
 </html>
