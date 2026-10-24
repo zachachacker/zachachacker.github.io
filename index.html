@@ -179,6 +179,8 @@
     background: linear-gradient(var(--haze), var(--haze)) 0 100% / 100% 2px no-repeat; padding-bottom: 4px; transition: color 0.2s, background-size 0.35s;
   }
   .mail:hover { color: #8FA0FF; background-size: 0 2px; }
+  footer .credits { max-width: 40rem; font-size: 0.8rem; }
+  footer .credits a { color: inherit; }
   footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: clamp(80px, 12vw, 160px); padding-top: 22px; border-top: 1px solid rgba(238,241,245,0.15); font-size: 0.9rem; color: rgba(238,241,245,0.55); }
 
   /* --------------------------------------------------------------- mobile */
@@ -386,7 +388,10 @@
       <h2>Got a business? Let's build it.</h2>
       <p>Tell me what you do and what's not working online. I'll come back with an idea, and usually a working demo.</p>
       <a class="mail" href="mailto:zachary@mr10x.com">zachary@mr10x.com</a>
-      <footer><span>Zach, Bedford UK</span><span>&copy; 2026</span></footer>
+      <footer>
+        <span>Zach, Bedford UK &copy; 2026</span>
+        <span class="credits">iPad model: <a href="https://sketchfab.com/3d-models/ipad-pro-129-2020-f0f7674522124f3bbc2d0f898963457e" target="_blank" rel="noopener">&ldquo;Ipad Pro 12.9 (2020)&rdquo;</a> by <a href="https://sketchfab.com/koklesh" target="_blank" rel="noopener">Konstantin Koretskyi</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, Apple logo removed. Studio lighting: <a href="https://polyhaven.com/a/studio_small_09" target="_blank" rel="noopener">Poly Haven</a>, CC0.</span>
+      </footer>
     </div>
   </section>
 </main>
@@ -397,7 +402,8 @@
 <script type="module">
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 const root = document.documentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -498,13 +504,17 @@ if (!scene) {
   scene.ready.then(() => intro(scene));
 }
 
-function roundedPlane(w, h, r) {
+function roundedPlaneShape(w, h, r) {
   const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
   s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
   s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
   s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
   s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
-  const g = new THREE.ShapeGeometry(s, 6);
+  return s;
+}
+
+function roundedPlane(w, h, r) {
+  const g = new THREE.ShapeGeometry(roundedPlaneShape(w, h, r), 12);
   const pos = g.attributes.position, uv = g.attributes.uv;
   for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getY(i) / h + 0.5);
   return g;
@@ -522,7 +532,22 @@ function initScene() {
   const scene3 = new THREE.Scene();
   scene3.fog = new THREE.Fog(STUDIO, 8, 18);
   const pmrem = new THREE.PMREMGenerator(renderer);
-  scene3.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+  // Reflections come from a real photo-studio HDRI (loaded below). Until it arrives, or if it fails,
+  // a simple built studio stands in: grey room, big softbox overhead, strip lights at the sides.
+  const studio = new THREE.Scene();
+  studio.add(new THREE.Mesh(new THREE.BoxGeometry(30, 16, 30), new THREE.MeshBasicMaterial({ color: 0x4a4e56, side: THREE.BackSide })));
+  const light = (w, h, power, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 1, 1).multiplyScalar(power), side: THREE.DoubleSide }));
+    m.position.set(x, y, z);
+    m.lookAt(0, 0, 0);
+    studio.add(m);
+  };
+  light(14, 6, 5, 0, 7.5, 2);       // overhead softbox
+  light(1.6, 10, 9, -9, 1, 4);      // strip, left
+  light(1.6, 10, 7, 9, 1, 3);       // strip, right
+  light(10, 3, 2.5, 0, 1, 14);      // fill behind the camera
+  light(6, 1, 6, 0, -2, -12);       // kicker behind the table
+  scene3.environment = pmrem.fromScene(studio, 0.01).texture;
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
 
   scene3.add(new THREE.HemisphereLight(0xffffff, 0xb4bdcb, 0.7));
@@ -540,22 +565,117 @@ function initScene() {
   floor.receiveShadow = true;
   scene3.add(floor);
 
-  // The turntable: one slab per project, facing outwards around a ring.
-  const W = 3, H = 1.875, R = 4.1, STEP = Math.PI * 2 / N;
+  // The turntable: one iPad Pro per project, landscape, facing outwards around a ring.
+  // The device is a real 3D model ("Ipad Pro 12.9 (2020)" by Konstantin Koretskyi, CC-BY 4.0), scaled so it's W wide.
+  // If the model can't load, a simpler built iPad stands in. 280.6 x 214.9 x 5.9 mm.
+  const MM = 3.2 / 280.6, BEZEL = 4.5 * MM;
+  const W = 280.6 * MM, H = 214.9 * MM, T = 5.9 * MM;   // device
+  const SW = W - 2 * BEZEL, SH = H - 2 * BEZEL;         // display (built fallback)
+  // Where the display sits on whichever device is in use; the model overwrites this once it loads.
+  const display = { w: SW, h: SH, x: 0, y: 0, z: T / 2 + 0.0012 };
+  const R = 4.1, STEP = Math.PI * 2 / N;
   const wrap = new THREE.Group();
   const ring = new THREE.Group();
   wrap.add(ring);
   scene3.add(wrap);
 
-  // Brushed-aluminium body, the site on an unlit screen so its colours stay true, and a thin glass pane over it.
-  const bodyGeo = new RoundedBoxGeometry(W + 0.14, H + 0.14, 0.12, 5, 0.07);
-  const bodyMat = new THREE.MeshPhysicalMaterial({ color: 0xe9ecf0, metalness: 0.65, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 });
-  const screenGeo = roundedPlane(W, H, 0.06);
-  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.1, envMapIntensity: 1.6, depthWrite: false });
+  // Polished silver aluminium shell with flat, slightly softened sides.
+  const bev = 0.011;
+  const shellGeo = new THREE.ExtrudeGeometry(roundedPlaneShape(W - 2 * bev, H - 2 * bev, 0.2 - bev), {
+    depth: T - 2 * bev, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 2, curveSegments: 48,
+  });
+  shellGeo.translate(0, 0, -(T - 2 * bev) / 2);
+  const shellMat = new THREE.MeshPhysicalMaterial({ color: 0xe4e6ea, metalness: 1, roughness: 0.16, envMapIntensity: 1 });
+  // Front: one sheet of black glass with the display set into it.
+  const frontGeo = roundedPlane(W - 0.003, H - 0.003, 0.198);
+  const bezelMat = new THREE.MeshPhysicalMaterial({ color: 0x020203, roughness: 0.04, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.01, envMapIntensity: 1 });
+  const screenGeo = roundedPlane(SW, SH, 0.2 - BEZEL);
+  // A soft diagonal reflection band drawn once, then slid across each screen as its iPad turns.
+  const sheenCanvas = document.createElement('canvas');
+  sheenCanvas.width = sheenCanvas.height = 512;
+  const sc = sheenCanvas.getContext('2d');
+  const grad = sc.createLinearGradient(0, 512, 512, 0);
+  grad.addColorStop(0, 'rgba(255,255,255,0)');
+  grad.addColorStop(0.38, 'rgba(255,255,255,0.02)');
+  grad.addColorStop(0.46, 'rgba(255,255,255,0.22)');
+  grad.addColorStop(0.52, 'rgba(255,255,255,0.08)');
+  grad.addColorStop(0.6, 'rgba(255,255,255,0.14)');
+  grad.addColorStop(0.68, 'rgba(255,255,255,0)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  sc.fillStyle = grad;
+  sc.fillRect(0, 0, 512, 512);
+  const sheenTex = new THREE.CanvasTexture(sheenCanvas);
+  const camGeo = new THREE.CircleGeometry(0.009, 24);
+  const camMat = new THREE.MeshBasicMaterial({ color: 0x1a1c22 });
+  // Back: the camera module, a soft rounded square raised a hair off the case, with lens, LiDAR and flash.
+  const BUMP_D = 0.005, BUMP_B = 0.004;
+  const bumpGeo = new THREE.ExtrudeGeometry(roundedPlaneShape(0.33, 0.33, 0.12), {
+    depth: BUMP_D, bevelEnabled: true, bevelThickness: BUMP_B, bevelSize: BUMP_B, bevelSegments: 4, curveSegments: 32,
+  });
+  const bumpMat = new THREE.MeshPhysicalMaterial({ color: 0xd9dce0, metalness: 1, roughness: 0.1, clearcoat: 0.6 });
+  const ringGeo = new THREE.CylinderGeometry(0.084, 0.084, 0.006, 48);
+  const ringMat = new THREE.MeshPhysicalMaterial({ color: 0xeef0f2, metalness: 1, roughness: 0.08 });
+  const lensGeo = new THREE.CircleGeometry(0.066, 48);
+  const lensMat = new THREE.MeshPhysicalMaterial({ color: 0x050608, metalness: 0.2, roughness: 0.02, clearcoat: 1, clearcoatRoughness: 0 });
+  const pupilGeo = new THREE.CircleGeometry(0.026, 32);
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x1b2433 });
+  const lidarGeo = new THREE.CircleGeometry(0.042, 40);
+  const flashGeo = new THREE.CircleGeometry(0.02, 24);
+  const flashMat = new THREE.MeshBasicMaterial({ color: 0xf3ecd9 });
   const manager = new THREE.LoadingManager();
   const texLoader = new THREE.TextureLoader(manager);
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   const screens = [];
+
+  function buildIpad() {
+    const g = new THREE.Group();
+    const shell = new THREE.Mesh(shellGeo, shellMat);
+    shell.castShadow = true;
+    g.add(shell);
+    const front = new THREE.Mesh(frontGeo, bezelMat);
+    front.position.z = T / 2 + 0.0005;
+    g.add(front);
+    const cam = new THREE.Mesh(camGeo, camMat);
+    cam.position.set(0, H / 2 - BEZEL / 2, T / 2 + 0.0012);
+    g.add(cam);
+    const cx = W / 2 - 0.29, cy = H / 2 - 0.29;
+    const bump = new THREE.Mesh(bumpGeo, bumpMat);
+    bump.position.set(cx, cy, -T / 2 - BUMP_D - BUMP_B * 0.5);
+    g.add(bump);
+    const back = -T / 2 - BUMP_D - BUMP_B * 1.5;          // outer face of the module
+    const disc = (geo, mat, x, y, z) => {
+      const m = new THREE.Mesh(geo, mat);
+      m.rotation.y = Math.PI;                              // face out of the back
+      m.position.set(cx + x, cy + y, z);
+      g.add(m);
+    };
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(cx - 0.07, cy + 0.07, back - 0.003);
+    g.add(ring);
+    disc(lensGeo, lensMat, -0.07, 0.07, back - 0.0062);
+    disc(pupilGeo, pupilMat, -0.07, 0.07, back - 0.0065);
+    disc(lidarGeo, lensMat, -0.07, -0.075, back - 0.0004);
+    disc(flashGeo, flashMat, 0.078, 0.07, back - 0.0004);
+    return g;
+  }
+
+  // Each screen shows the whole page, a window of it at a time, so it can scroll through the real site.
+  // Pages shorter than the display are cropped at the sides instead, and don't scroll.
+  function fitTexture(s) {
+    const img = s.tex.image;
+    if (!img || !img.width) return;
+    const frac = (img.width / (display.w / display.h)) / img.height;
+    if (frac <= 1) {
+      s.frac = frac;
+      s.tex.repeat.set(1, frac);
+      s.tex.offset.set(0, 1 - frac);
+    } else {
+      s.frac = 1;
+      s.tex.repeat.set(1 / frac, 1);
+      s.tex.offset.set((1 - 1 / frac) / 2, 0);
+    }
+  }
 
   const slabs = PROJECTS.map((p, i) => {
     const a = i * STEP;
@@ -564,32 +684,79 @@ function initScene() {
     pivot.rotation.y = a;
     const slab = new THREE.Group();
     pivot.add(slab);
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.castShadow = true;
-    slab.add(body);
     const s = { slab, a, drop: { y: 0 }, hover: 0, scroll: 0, frac: 1 };
-    // Each screen shows the whole page, a window of it at a time, so it can scroll through the real site.
-    const tex = texLoader.load(p.full, t => {
-      const img = t.image;
-      s.frac = Math.min(1, (img.width / (W / H)) / img.height);
-      t.repeat.set(1, s.frac);
-      t.offset.set(0, 1 - s.frac);
-    });
+    const tex = texLoader.load(p.full, () => fitTexture(s));
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = maxAniso;
     const screen = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
-    screen.position.z = 0.062;
+    screen.position.z = display.z;
     screen.userData.i = i;
     slab.add(screen);
-    const glass = new THREE.Mesh(screenGeo, glassMat);
-    glass.position.z = 0.066;
+    const sheen = sheenTex.clone();
+    sheen.needsUpdate = true;
+    const glass = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({
+      map: sheen, opacity: 0.28, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+    }));
+    glass.position.z = display.z + 0.0008;
     slab.add(glass);
+    s.sheen = sheen;
+    s.glass = glass;
     screens.push(screen);
     ring.add(pivot);
     s.screen = screen;
     s.tex = tex;
     return s;
   });
+
+  // The real iPad model: stand it up facing +z in landscape, centre it, scale it to W, then find its display
+  // so the site screens sit exactly on it.
+  new GLTFLoader(manager).load('img/ipad/scene.gltf', gltf => {
+    const model = gltf.scene;
+    let panel = null;
+    model.traverse(o => {
+      if (!o.isMesh) return;
+      o.castShadow = true;
+      if (o.material.name === 'screen') panel = o;
+    });
+    const device = new THREE.Group();
+    const turn = new THREE.Group();
+    const face = new THREE.Group();
+    device.add(turn); turn.add(face); face.add(model);
+    device.updateMatrixWorld(true);
+    // the panel's normal points out of the display; turn the model so that's +z, towards the camera
+    const n = new THREE.Vector3().fromBufferAttribute(panel.geometry.attributes.normal, 0)
+      .applyMatrix3(new THREE.Matrix3().getNormalMatrix(panel.matrixWorld)).normalize();
+    face.quaternion.setFromUnitVectors(n, new THREE.Vector3(0, 0, 1));
+    device.updateMatrixWorld(true);
+    const pSize = new THREE.Box3().setFromObject(panel).getSize(new THREE.Vector3());
+    if (pSize.y > pSize.x) turn.rotation.z = Math.PI / 2;    // portrait model, lay it landscape
+    device.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(device);
+    turn.position.copy(box.getCenter(new THREE.Vector3())).negate();
+    device.scale.setScalar(W / box.getSize(new THREE.Vector3()).x);
+    device.updateMatrixWorld(true);
+    const pBox = new THREE.Box3().setFromObject(panel);
+    const pc = pBox.getCenter(new THREE.Vector3()), ps = pBox.getSize(new THREE.Vector3());
+    Object.assign(display, { w: ps.x, h: ps.y, x: pc.x, y: pc.y, z: pBox.max.z + 0.0006 });
+    const geo = roundedPlane(display.w, display.h, display.h * 0.045);
+    slabs.forEach(s => {
+      s.slab.add(device.clone(true));
+      s.screen.geometry = geo;
+      s.screen.position.set(display.x, display.y, display.z);
+      s.glass.geometry = geo;
+      s.glass.position.set(display.x, display.y, display.z + 0.0008);
+      fitTexture(s);
+    });
+  }, undefined, err => {
+    console.warn('iPad model unavailable, using the built one', err);
+    slabs.forEach(s => s.slab.add(buildIpad()));
+  });
+
+  // The photo-studio HDRI ("Studio Small 09" by Sergej Majboroda, Poly Haven, CC0) for reflections.
+  new RGBELoader(manager).load('img/studio_small_09_1k.hdr', hdr => {
+    scene3.environment = pmrem.fromEquirectangular(hdr).texture;
+    hdr.dispose();
+  }, undefined, err => console.warn('studio HDRI unavailable, keeping the built studio', err));
 
   const ready = new Promise(resolve => {
     let done = false;
@@ -614,7 +781,7 @@ function initScene() {
     const visH = 2 * d * tan, visW = visH * camera.aspect;
     layout.xHero = wide ? visW * 0.27 : 0;
     layout.xWork = wide ? visW * 0.2 : 0;
-    layout.y = wide ? -0.05 : visH * 0.31;
+    layout.y = wide ? -0.05 : visH * 0.27;
     camera.position.set(0, 0.85, R + d);
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
@@ -732,6 +899,7 @@ function initScene() {
       const want = idle * (1 - w) + page * w;
       s.scroll += (want - s.scroll) * smooth(6, dt);
       if (s.frac < 1) s.tex.offset.y = (1 - s.frac) * (1 - s.scroll);
+      s.sheen.offset.x = Math.sin(s.a + ring.rotation.y) * 0.55 + pointer.x * 0.08;
     });
 
     renderer.render(scene3, camera);
