@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Zach | Websites, online ordering and apps</title>
-<meta name="description" content="Zach builds websites, online ordering and apps for real businesses. Based in Bedford, UK.">
+<meta name="description" content="Zach builds websites, online ordering and apps for businesses. Based in Bedford, UK.">
 <meta property="og:title" content="Zach | Websites, online ordering and apps">
 <meta property="og:description" content="Websites, online ordering and apps for real businesses.">
 <meta property="og:image" content="img/lilys.jpg">
@@ -163,6 +163,7 @@
   .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(24px, 4vw, 56px); margin-top: clamp(36px, 5vw, 64px); }
   .cols h3 { font-stretch: 112%; font-weight: 700; font-size: 1.4rem; letter-spacing: -0.015em; }
   .cols p { margin-top: 10px; color: var(--slate); }
+  .cols.two { grid-template-columns: repeat(2, 1fr); }
   .cols > div { border-top: 2px solid var(--ink); padding-top: 18px; }
   .how { margin-top: clamp(56px, 8vw, 96px); }
   .how h2 { font-size: clamp(1.6rem, 2.8vw, 2.4rem); }
@@ -192,7 +193,7 @@
     .proj > .wrap { align-items: flex-end; padding-block: 0 76px; }
     .info { max-width: none; background: rgba(238,241,245,0.9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-radius: 20px; padding: 22px 20px 24px; }
     .work-intro { align-items: flex-end; padding-bottom: 32px; }
-    .cols { grid-template-columns: 1fr; }
+    .cols, .cols.two { grid-template-columns: 1fr; }
     nav ul li.hide-m { display: none; }
   }
   @media (max-width: 860px) {
@@ -247,8 +248,8 @@
   <header class="hero pass" id="top">
     <div class="wrap">
       <div class="hero-copy">
-        <h1>I build websites that do the work.</h1>
-        <p class="lede">Websites, online ordering and apps for real businesses, from a grill in Florida to a cheese shop down the road. <strong>I'm Zach, based in Bedford.</strong></p>
+        <h1>Websites and apps for businesses.</h1>
+        <p class="lede"><strong>I'm Zach, based in Bedford.</strong> I design and build websites, online ordering and apps, start to finish. One of my sites takes the orders for a restaurant in Florida every day.</p>
         <div class="btns">
           <a href="#work" class="btn solid">See the work</a>
           <a href="#contact" class="btn line">Start a project</a>
@@ -260,8 +261,8 @@
 
   <section class="work-intro pass" id="work">
     <div class="wrap">
-      <h2>Six projects, all for real businesses.</h2>
-      <p>Two are live and finished. Four are being built right now.</p>
+      <h2>Recent work</h2>
+      <p>Every project here is for a real business. Two are live, two are being built now.</p>
       <div class="legend"><span class="status live">Live and finished</span><span class="status wip">In progress</span></div>
     </div>
   </section>
@@ -272,11 +273,11 @@
         <span class="status live">Live and finished</span>
         <h3>Lily's Mediterranean Fresh Grill</h3>
         <p class="where">Restaurant in Indialantic, Florida</p>
-        <p class="desc">A family-run Lebanese grill on the Space Coast. They needed a site that looks as good as the food, plus a way to take orders online without handing a cut to the delivery apps.</p>
+        <p class="desc">A family-run Lebanese grill on Florida's Space Coast. They wanted a site that does the food justice, and a way to take orders without giving a delivery app a cut of each one.</p>
         <ul class="built">
-          <li>Website with the full menu and prices</li>
-          <li>Online ordering with card payments</li>
-          <li>Kitchen screen that shows new orders the moment they land</li>
+          <li>Full menu with prices and photos</li>
+          <li>Online ordering and card payments</li>
+          <li>New orders appear on a screen in the kitchen</li>
         </ul>
         <a class="visit" href="https://lilysmediterraneanfresh.com/" target="_blank" rel="noopener">Visit lilysmediterraneanfresh.com</a>
         <img class="fallback" src="img/lilys.jpg" alt="Lily's Mediterranean homepage" loading="lazy">
@@ -288,11 +289,11 @@
         <span class="status live">Live and finished</span>
         <h3>Elio Lepore</h3>
         <p class="where">Personal brand for EL Productions, UK</p>
-        <p class="desc">A home for a filmmaker and entrepreneur running a media company and a property venture. The site is built around his own footage, so the first thing you see is his work.</p>
+        <p class="desc">Elio is a filmmaker who runs a media company and a property business. His site opens on his own footage, then points you to each thing he does.</p>
         <ul class="built">
-          <li>Full-screen film hero, cut from his own clips</li>
-          <li>One hub for every venture he runs</li>
-          <li>Domain, hosting and ongoing changes looked after</li>
+          <li>Full-screen video intro cut from his clips</li>
+          <li>One place for all his businesses</li>
+          <li>I look after the hosting and updates</li>
         </ul>
         <a class="visit" href="https://eliolepore.com" target="_blank" rel="noopener">Visit eliolepore.com</a>
         <img class="fallback" src="img/elio.jpg" alt="Elio Lepore homepage" loading="lazy">
@@ -304,11 +305,11 @@
         <span class="status wip">In progress</span>
         <h3>ChefSage</h3>
         <p class="where">Cooking app for Frame2Fork, which I co-founded</p>
-        <p class="desc">Paste any recipe video and ChefSage turns it into clear steps, then talks you through them while you cook. The web version is up in beta; the iPhone and Android apps are next.</p>
+        <p class="desc">Paste a link to a recipe video and ChefSage writes out the steps, then reads them to you while you cook. The web version is in beta. iPhone and Android are next.</p>
         <ul class="built">
-          <li>Apps for iPhone, Android and the web</li>
-          <li>Video-to-recipe conversion</li>
-          <li>Hands-free voice guide while you cook</li>
+          <li>Turns recipe videos into written steps</li>
+          <li>Voice guide, so you're not touching your phone with messy hands</li>
+          <li>Web app now, iPhone and Android on the way</li>
         </ul>
         <a class="visit" href="https://frame2fork.com" target="_blank" rel="noopener">Try the beta</a>
         <img class="fallback" src="img/f2f.jpg" alt="ChefSage recipe app" loading="lazy">
@@ -320,64 +321,32 @@
         <span class="status wip">In progress</span>
         <h3>Nitoria Global</h3>
         <p class="where">Investor site for a cosmetics company, England</p>
-        <p class="desc">A one-page site for a new cosmetics company opening a private round. Quiet and short: who they are, the opportunity, and a direct line for investors. Launching on their own domain once the final content is in.</p>
+        <p class="desc">A new cosmetics company raising its first round of investment. They wanted something short and serious: who they are, what's on offer, and an easy way for investors to get in touch. It goes live on their own domain once the final copy is in.</p>
         <ul class="built">
-          <li>One-page investor site</li>
-          <li>Investor enquiry form</li>
-          <li>Feedback turned around the same day</li>
+          <li>One-page site for investors</li>
+          <li>Enquiry form that comes straight to them</li>
         </ul>
         <a class="visit" href="https://zachachacker.github.io/demos/nitoria/" target="_blank" rel="noopener">See the design</a>
         <img class="fallback" src="img/nitoria.jpg" alt="Nitoria Global page" loading="lazy">
-      </div></div>
-    </section>
-
-    <section class="proj pass" data-name="The Bedford Cheese Company" data-img="img/cheese.jpg" data-url="https://zachachacker.github.io/demos/bedford-cheese/">
-      <div class="wrap"><div class="info">
-        <span class="status wip">In progress</span>
-        <h3>The Bedford Cheese Company</h3>
-        <p class="where">Cheese deli and caf&eacute; in Cardington, Bedford</p>
-        <p class="desc">A new site for a family-run cheese deli, farm shop and caf&eacute; in a converted barn. A warm market-hall feel, led by photos of the actual shop and the cheese counter.</p>
-        <ul class="built">
-          <li>Full redesign with real photography</li>
-          <li>Cheese counter, caf&eacute; menu and events</li>
-          <li>Live opening hours that say if they're open now</li>
-        </ul>
-        <a class="visit" href="https://zachachacker.github.io/demos/bedford-cheese/" target="_blank" rel="noopener">See the design</a>
-        <img class="fallback" src="img/cheese.jpg" alt="Bedford Cheese Company redesign" loading="lazy">
-      </div></div>
-    </section>
-
-    <section class="proj pass" data-name="Andalus Olive Oil" data-img="img/andalus.jpg" data-url="https://zachachacker.github.io/demos/andalus-olive-oil/">
-      <div class="wrap"><div class="info">
-        <span class="status wip">In progress</span>
-        <h3>Andalus Olive Oil</h3>
-        <p class="where">Olive oil from Ja&eacute;n, Spain, sold in the UK</p>
-        <p class="desc">Premium single-estate olive oil. The new shop sets it at golden hour on the estate, dark and gold, so the bottle feels as premium as the oil inside it.</p>
-        <ul class="built">
-          <li>Full redesign of the online shop</li>
-          <li>The oils, the estate and the harvest, told properly</li>
-          <li>Built to look right on a phone first</li>
-        </ul>
-        <a class="visit" href="https://zachachacker.github.io/demos/andalus-olive-oil/" target="_blank" rel="noopener">See the design</a>
-        <img class="fallback" src="img/andalus.jpg" alt="Andalus olive oil redesign" loading="lazy">
       </div></div>
     </section>
   </div>
 
   <section class="services" id="services">
     <div class="wrap">
-      <h2>What I build</h2>
-      <div class="cols">
-        <div><h3>Websites</h3><p>Designed from scratch for your business, with your real photos and your real menu or prices. Fast on phones and easy to find on Google.</p></div>
-        <div><h3>Online ordering</h3><p>Customers order and pay on your own site, orders show up on a screen in your kitchen, and you keep the margin the delivery apps would take.</p></div>
-        <div><h3>Apps</h3><p>iPhone, Android and web apps, from the first idea to the App Store.</p></div>
+      <h2>What I do</h2>
+      <div class="cols two">
+        <div><h3>Websites</h3><p>New sites and redesigns, built around your own photos, your real menu or prices, and the things customers actually look for. Quick on a phone and set up properly for Google.</p></div>
+        <div><h3>Online ordering</h3><p>For restaurants and takeaways. Customers order and pay on your own website, the order pops up on a screen in your kitchen, and no delivery app takes a cut. You just pay normal card fees.</p></div>
+        <div><h3>Apps</h3><p>iPhone, Android and web apps, from the first idea to something people can actually download and use.</p></div>
+        <div><h3>Looking after it</h3><p>Hosting, your domain, fixes and changes for a small monthly fee. If something needs updating, you message me and it gets done.</p></div>
       </div>
       <div class="how">
         <h2>How it works</h2>
         <div class="cols">
-          <div><h3>You see it before you pay</h3><p>I build a working version for your business first, so you're judging the real thing, not a pitch.</p></div>
-          <div><h3>No homework for you</h3><p>Domain, hosting, setup and changes are handled. You just tell me what you want.</p></div>
-          <div><h3>It stays yours</h3><p>Your site, your domain, your customers. Nothing is locked to me.</p></div>
+          <div><h3>You see it first</h3><p>I build a working version for your business before you commit, so you're judging the real thing, not a sales pitch.</p></div>
+          <div><h3>One fixed price</h3><p>Agreed before I start. No hourly rates and no surprise invoices.</p></div>
+          <div><h3>It's yours</h3><p>Your domain, your site, your customers. I handle the technical side, but nothing is locked to me.</p></div>
         </div>
       </div>
     </div>
@@ -385,8 +354,8 @@
 
   <section class="contact" id="contact">
     <div class="wrap">
-      <h2>Got a business? Let's build it.</h2>
-      <p>Tell me what you do and what's not working online. I'll come back with an idea, and usually a working demo.</p>
+      <h2>Got a business? Let's talk.</h2>
+      <p>Email me what you do and what you want your website to do. I'll get back to you with some ideas, and usually a demo.</p>
       <a class="mail" href="mailto:zachary@mr10x.com">zachary@mr10x.com</a>
       <footer>
         <span>Zach, Bedford UK &copy; 2026</span>
