@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Zach | Websites, online ordering and apps</title>
-<meta name="description" content="Zach builds websites, online ordering and apps for businesses. Based in Bedford, UK.">
-<meta property="og:title" content="Zach | Websites, online ordering and apps">
-<meta property="og:description" content="Websites, online ordering and apps, built by Zach in Bedford.">
+<title>Zachary | Websites, online ordering and apps</title>
+<meta name="description" content="Zachary, founder of Night Shift Design, builds websites, online ordering and apps for businesses. Based in Bedford, UK.">
+<meta property="og:title" content="Zachary | Websites, online ordering and apps">
+<meta property="og:description" content="Websites, online ordering and apps, built by Zachary in Bedford.">
 <meta property="og:image" content="img/lilys.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -88,7 +88,7 @@
   /* content layers sit above the canvas, but only their real content catches the pointer */
   main, nav { position: relative; z-index: 2; }
   main { pointer-events: none; }
-  .services, .contact { pointer-events: auto; }
+  .services, .contact, .ns { pointer-events: auto; }
   .pass { pointer-events: none; }
   .pass a, .pass button, .pass p, .pass h1, .pass h2, .pass h3, .pass ul, .pass .info { pointer-events: auto; }
 
@@ -157,6 +157,16 @@
   .no-gl .proj > .wrap, .no-js .proj > .wrap { position: static; min-height: 0; }
 
   /* ------------------------------------------------------------- services */
+  .ns { background: #0f3d2a; color: #f6f2ea; padding-block: clamp(80px, 11vw, 150px); position: relative; }
+  .ns .kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #d4a017; }
+  .ns h2 { margin-top: 16px; font-stretch: 125%; font-weight: 800; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(2.2rem, 4.6vw, 4.2rem); max-width: 13ch; }
+  .ns h2 em { font-style: normal; color: #d4a017; }
+  .ns p { margin-top: 22px; max-width: 34rem; font-size: 1.12rem; color: rgba(246,242,234,0.78); }
+  .ns .btns { margin-top: 30px; }
+  .ns .btn.solid { background: #d4a017; color: #0f3d2a; }
+  .ns .btn.solid:hover { background: #f6f2ea; color: #0f3d2a; }
+  .ns .btn.line { box-shadow: inset 0 0 0 1.5px #f6f2ea; color: #f6f2ea; }
+  .ns .btn.line:hover { background: #f6f2ea; color: #0f3d2a; }
   .services { background: var(--haze); padding-block: clamp(80px, 11vw, 150px); position: relative; }
   .services h2, .contact h2 { font-stretch: 125%; font-weight: 800; letter-spacing: -0.03em; line-height: 0.98; }
   .services h2 { font-size: clamp(2.2rem, 4.6vw, 4.2rem); }
@@ -224,7 +234,7 @@
 <body>
 <script>document.documentElement.classList.remove('no-js');</script>
 
-<div id="loader" aria-hidden="true"><p>Zach</p><div class="bar"><i></i></div></div>
+<div id="loader" aria-hidden="true"><p>Zachary</p><div class="bar"><i></i></div></div>
 <canvas id="gl" aria-label="The four projects on a rotating turntable" role="img"></canvas>
 <div id="tip" aria-hidden="true"></div>
 <div id="switcher" aria-label="Step through the projects">
@@ -235,9 +245,10 @@
 
 <nav>
   <div class="wrap">
-    <a href="#top" class="brand">Zach</a>
+    <a href="#top" class="brand">Zachary</a>
     <ul>
       <li class="hide-m"><a href="#work">Work</a></li>
+      <li class="hide-m"><a href="#nightshift">Night Shift</a></li>
       <li class="hide-m"><a href="#services">Services</a></li>
       <li><a href="#contact" class="pill">Start a project</a></li>
     </ul>
@@ -248,11 +259,11 @@
   <header class="hero pass" id="top">
     <div class="wrap">
       <div class="hero-copy">
-        <h1>Websites and apps for businesses.</h1>
-        <p class="lede"><strong>I'm Zach, based in Bedford.</strong> I design and build websites, online ordering and apps. One of my sites takes the orders for a restaurant in Florida, and ChefSage, the cooking app I co-founded, is on the App Store.</p>
+        <h1>I'm Zachary. I build websites and apps.</h1>
+        <p class="lede"><strong>I'm based in Bedford, and I founded <a href="https://zachachacker.github.io/nightshift/" style="color:inherit">Night Shift Design</a>.</strong> I design and build websites, online ordering and apps. One of my sites takes the orders for a restaurant in Florida, and ChefSage, the cooking app I co-founded, is on the App Store.</p>
         <div class="btns">
-          <a href="#work" class="btn solid">See the work</a>
-          <a href="#contact" class="btn line">Start a project</a>
+          <a href="#work" class="btn solid">See my work</a>
+          <a href="https://zachachacker.github.io/nightshift/" class="btn line">Night Shift Design</a>
         </div>
         <p class="hint">Drag the table to spin it, or scroll to go through each project.</p>
       </div>
@@ -334,6 +345,18 @@
     </section>
   </div>
 
+  <section class="ns" id="nightshift">
+    <div class="wrap">
+      <span class="kicker">My studio</span>
+      <h2>I founded <em>Night Shift Design.</em></h2>
+      <p>Night Shift is the studio I started for businesses in Bedford: new websites and redesigns, online ordering for takeaways and cafes, menu and poster design, and 3D printed signs. I design and build every one of them myself.</p>
+      <div class="btns">
+        <a href="https://zachachacker.github.io/nightshift/" class="btn solid">Visit Night Shift</a>
+        <a href="#contact" class="btn line">Talk to me</a>
+      </div>
+    </div>
+  </section>
+
   <section class="services" id="services">
     <div class="wrap">
       <h2>What I do</h2>
@@ -360,7 +383,7 @@
       <p>Email me what your business does and what you need. I&rsquo;ll reply with an idea and a price in writing.</p>
       <a class="mail" href="mailto:zachary@mr10x.com">zachary@mr10x.com</a>
       <footer>
-        <span>Zach, Bedford UK &copy; 2026</span>
+        <span>Zachary, founder of <a href="https://zachachacker.github.io/nightshift/" style="color:inherit">Night Shift Design</a>. Bedford, UK &copy; 2026</span>
         <span class="credits">iPad model: <a href="https://sketchfab.com/3d-models/ipad-pro-129-2020-f0f7674522124f3bbc2d0f898963457e" target="_blank" rel="noopener">&ldquo;Ipad Pro 12.9 (2020)&rdquo;</a> by <a href="https://sketchfab.com/koklesh" target="_blank" rel="noopener">Konstantin Koretskyi</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>, Apple logo removed. Studio lighting: <a href="https://polyhaven.com/a/studio_small_09" target="_blank" rel="noopener">Poly Haven</a>, CC0.</span>
       </footer>
     </div>
