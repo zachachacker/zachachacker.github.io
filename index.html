@@ -860,9 +860,10 @@ function initScene() {
     const target = drag + (work - drag) * w + spin.v;
     ring.rotation.y += (target - ring.rotation.y) * smooth(reduce ? 14 : 5, dt);
 
-    // The table leans with scroll speed and settles back, like it has weight.
+    // The table leans a touch with scroll speed and settles back, like it has weight.
+    // Kept small: a big lean tipped the iPads far down the screen mid-scroll.
     const vel = lenis ? lenis.velocity : 0;
-    lean += (Math.max(-0.22, Math.min(0.22, vel * 0.006)) - lean) * smooth(4, dt);
+    lean += (Math.max(-0.035, Math.min(0.035, vel * 0.0012)) - lean) * smooth(6, dt);
 
     pointer.x += (pointer.tx - pointer.x) * smooth(3, dt);
     pointer.y += (pointer.ty - pointer.y) * smooth(3, dt);
